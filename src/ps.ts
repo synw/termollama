@@ -42,7 +42,6 @@ async function ps(showGpuInfo = true) {
         console.log("No models are loaded in vram");
         return
     }
-    console.log("OFF", hasOffload);
     // models
     const { Table } = TCharts;
     const table = new Table(0.2);
