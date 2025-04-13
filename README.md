@@ -28,6 +28,10 @@ chart (or use the `olm -mem` command).
 
 ## Models
 
+To list all the available models: `olm -m`.
+
+To search for a model: `olm -m qwen coder`
+
 ### Load models
 
 Use the `-l` flag to list all the models and select some to load. Output:

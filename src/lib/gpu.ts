@@ -2,6 +2,28 @@ import { execSync } from 'node:child_process';
 import { GPUCard, TotalMemoryInfo } from '../interfaces.js';
 import { gpus } from '../state.js';
 
+
+function getTotalGPUMem(): number {
+    const gpuInfo = execSync('nvidia-smi --query-gpu=index,name,memory.total,memory.used --format=csv,noheader,nounits')
+        .toString()
+        .trim()
+        .split('\n');
+
+    // Process each GPU's information
+    let totalMemoryBytes = 0;
+    gpuInfo.map(gpu => {
+        const [index, name, memoryTotalMiB, memoryUsedMiB] = gpu.split(',');
+        const memoryTotalBytesCard = Math.round(Number(memoryTotalMiB) * 1048576);
+        totalMemoryBytes += memoryTotalBytesCard
+    });
+    return totalMemoryBytes
+}
+
+function getGPUOccupationPercent(totalGPUMem: number, memOccupation: number): number {
+    const p = parseFloat(((memOccupation / totalGPUMem) * 100).toFixed(1));
+    return p
+}
+
 /**
  * Gets current and total memory capacity for all NVIDIA GPUs in GB
  * @returns {Object} Object containing array of GPU information and total memory details
@@ -77,4 +99,8 @@ function getGPUMemoryInfo(): { cards: GPUCard[], totalMemory: TotalMemoryInfo } 
     }
 }
 
-export { getGPUMemoryInfo }
+export {
+    getGPUMemoryInfo,
+    getGPUOccupationPercent,
+    getTotalGPUMem,
+}

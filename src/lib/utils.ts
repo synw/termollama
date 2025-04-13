@@ -15,7 +15,10 @@ function getTimeHumanizedUntil(futureDateString: string): string {
     if (diffInMilliseconds < 0) {
         throw new Error("The provided date is in the past.");
     }
-    const res = humanizeDuration(diffInMilliseconds, { units: ["d", "h", "m", "s"], round: true });
+    if (diffInMilliseconds <= 60000) {
+        return humanizeDuration(diffInMilliseconds, { units: ["d", "h", "m", "s"], round: true });
+    }
+    const res = humanizeDuration(diffInMilliseconds, { units: ["d", "h", "m"], round: true });
     return res
 }
 

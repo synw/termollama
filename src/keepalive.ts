@@ -1,6 +1,4 @@
 import { checkbox, input } from '@inquirer/prompts';
-import { memTotalStats, modelsMemChart } from './lib/stats.js';
-import { getGPUMemoryInfo } from './lib/gpu.js';
 import { ollama } from './state.js';
 import { ps } from './ps.js';
 

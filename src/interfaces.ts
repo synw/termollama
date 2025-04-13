@@ -32,6 +32,13 @@ interface ModelData {
     expire: string;
 }
 
+interface ExtendedModelData extends ModelData {
+    isLoaded: boolean;
+    raw_size_vram: number;
+    params: string;
+    quant: string;
+}
+
 interface ParsedOptions {
     flags: string[];
     [key: string]: number | string[]; // Allow both numbers and the 'flags' array
@@ -45,7 +52,7 @@ interface KeyPress {
     shift: boolean;
 }
 
-type Cmd = "serve" | "env" | "load" | "unload" | "mem" | "search" | "keepAlive" | "default";
+type Cmd = "serve" | "env" | "load" | "unload" | "mem" | "search" | "keepAlive" | "models" | "default";
 
 export {
     GPUCard,
@@ -55,4 +62,5 @@ export {
     ModelData,
     Cmd,
     KeyPress,
+    ExtendedModelData,
 }

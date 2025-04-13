@@ -13,7 +13,7 @@ import { unload } from './unload.js';
 import { gpus, initState, ollama } from './state.js';
 import { keepAlive } from './keepalive.js';
 import { ListResponse } from 'ollama/dist';
-import { valueOptions } from './lib/options.js';
+import { models } from './models.js';
 
 async function ollamaPsOrQuit(): Promise<ListResponse> {
     const ps = await ollama.ps();
@@ -27,6 +27,7 @@ async function ollamaPsOrQuit(): Promise<ListResponse> {
 async function main(useDefault = false) {
     let args = new Array<string>();
     const searchArgs = new Array<string>();
+    let searchAction: "models" | "load" = "load";
     let cmd: Cmd = "default";
     if (argv.length > 2) {
         args.push(...argv.slice(2));
@@ -69,6 +70,9 @@ async function main(useDefault = false) {
                 case "-l":
                     cmd = "load";
                     break;
+                case "-m":
+                    cmd = "models";
+                    break;
                 case "-u":
                     cmd = "unload";
                     break;
@@ -79,7 +83,15 @@ async function main(useDefault = false) {
                     cmd = "keepAlive";
                     break;
                 default:
+                    //console.log("PCM", cmd);
                     if (cmd == "serve") { break }
+                    else if (cmd == "models") {
+                        searchAction = "models";
+                        break;
+                    } else if (cmd == "load") {
+                        searchAction = "load";
+                        break;
+                    }
                     if (a.startsWith("-")) {
                         console.error(`unknown flag ${a}`);
                         return;
@@ -103,6 +115,9 @@ async function main(useDefault = false) {
         case "mem":
             modelsMemChart(await ollamaPsOrQuit());
             break;
+        case "models":
+            await models(args);
+            break;
         case "load":
             await load(args);
             break;
@@ -111,7 +126,14 @@ async function main(useDefault = false) {
             await unload();
             break;
         case "search":
-            await load(args);
+            if (!searchAction) {
+                throw new Error("no search action")
+            }
+            if (searchAction == "load") {
+                await load(args);
+            } else {
+                await models(args);
+            }
             break;
         case "keepAlive":
             await ollamaPsOrQuit();
