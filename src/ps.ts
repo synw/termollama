@@ -20,6 +20,7 @@ async function ps(showGpuInfo = true) {
     const models = new Array<ExtendedModelData>();
     let hasOffload = false;
     data.forEach((m) => {
+        //console.log("M", m);
         const modelData = {} as ExtendedModelData;
         modelData.name = m.name;
         modelData.size = formatFileSize(m.size);
@@ -27,23 +28,18 @@ async function ps(showGpuInfo = true) {
         modelData.params = m.details.parameter_size;
         modelData.size_ram = "0";
         modelData.ram_percentage = "0%";
-        modelData.size_vram = "";
+        modelData.size_vram = "0";
         modelData.raw_size_vram = 0;
         modelData.expire = "";
-        modelData.isLoaded = m?.size_vram ? true : false;
-        if (modelData.isLoaded) {
-            //console.log("LM", m);
-            modelData.raw_size_vram = m.size_vram;
-            modelData.size_vram = formatFileSize(m.size_vram);
-            if (m.size > m.size_vram) {
-                modelData.size_ram = formatFileSize(m.size - m.size_vram);
-                modelData.ram_percentage = (((m.size - m.size_vram) / m.size) * 100).toFixed(1) + '%';
-                hasOffload = true;
-            }
-            modelData.expire = getTimeHumanizedUntil(m.expires_at.toString());
-        } else {
-            //console.log("M", m)
+        //console.log("LM", m);
+        modelData.raw_size_vram = m.size_vram;
+        modelData.size_vram = formatFileSize(m.size_vram);
+        if (m.size > m.size_vram) {
+            modelData.size_ram = formatFileSize(m.size - m.size_vram);
+            modelData.ram_percentage = (((m.size - m.size_vram) / m.size) * 100).toFixed(1) + '%';
+            hasOffload = true;
         }
+        modelData.expire = getTimeHumanizedUntil(m.expires_at.toString());
         models.push(modelData);
         choices.push({
             name: m.name,
@@ -51,13 +47,13 @@ async function ps(showGpuInfo = true) {
         })
     });
     if (data.length == 0) {
-        console.log("No models are loaded in vram");
+        console.log("No models are loaded in the vram");
         return
     }
     // models
     const { Table } = TCharts;
     const table = new Table(0.2);
-    const dt = new Array<string>("Name", "Gpu");
+    const dt = new Array<string>("Model", "Size");
     let totalGpuMem = 0;
     if (hasOffload) {
         dt.push("Ram")

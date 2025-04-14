@@ -85,14 +85,14 @@ async function models(args: Array<string>) {
     //console.log(models);
     const { Table } = TCharts;
     const table = new Table(0.1);
-    const dt = new Array<string>("Name", "Params", "Quant", "Gpu");
+    const dt = new Array<string>("Model", "Params", "Quant", "Size");
     let totalGpuMem = 0;
     if (hasOffload) {
         dt.push("Ram")
     }
     if (hasModelsLoaded) {
         dt.push("Unload in");
-        dt.push("Gpu %");
+        dt.push("Gpu usage");
         totalGpuMem = getTotalGPUMem();
     }
     const tdata = new Array<Array<string>>(dt);
@@ -109,9 +109,9 @@ async function models(args: Array<string>) {
             mdata.push(m.ram_percentage)
         }
         if (hasModelsLoaded) {
-            mdata.push(m.expire)
+            mdata.push(m.expire);
+            mdata.push(gpuOccupation);
         }
-        mdata.push(gpuOccupation);
         tdata.push(mdata);
     }
     table.setData(tdata);
