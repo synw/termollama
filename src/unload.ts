@@ -25,7 +25,7 @@ async function unload() {
         //console.log(`Unloaded ${answer.length} model${answer.length > 1 ? 's' : ''}`);
         await new Promise(resolve => setTimeout(resolve, 350));
         modelsMemChart(await ollama.ps());
-        memTotalStats(getGPUMemoryInfo())
+        memTotalStats(await getGPUMemoryInfo())
     } else {
         console.log("No models unloaded")
     }

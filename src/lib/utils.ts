@@ -3,6 +3,33 @@ import * as readline from 'readline';
 import humanizeDuration from "humanize-duration";
 import { filesize } from "filesize";
 import { KeyPress } from '../interfaces.js';
+import { spawnSync } from 'child_process';
+
+class CommandChecker {
+    /**
+     * Checks if a command exists in the system PATH
+     */
+    static async commandExists(command: string): Promise<boolean> {
+        return new Promise((resolve) => {
+            const result = spawnSync('which', [command]);
+
+            // Check exit code
+            if (result.status === 0) {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        });
+    }
+
+    /**
+     * Synchronous version of commandExists
+     */
+    static commandExistsSync(command: string): boolean {
+        const result = spawnSync('which', [command]);
+        return result.status === 0;
+    }
+}
 
 function formatFileSize(bytes: number, decimals: number = 1): string {
     return filesize(bytes, { round: decimals, standard: "iec" });
@@ -70,4 +97,5 @@ export {
     formatFileSize,
     getTimeHumanizedUntil,
     keyPressDetection,
+    CommandChecker,
 }

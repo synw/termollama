@@ -53,7 +53,7 @@ async function search(args?: Array<string>) {
             console.log("Loaded", m)
         }
         //console.log(`Loaded ${answer.length} model${answer.length > 1 ? 's' : ''}`)
-        memTotalStats(getGPUMemoryInfo())
+        memTotalStats(await getGPUMemoryInfo())
     } else {
         console.log("No model loaded")
     }

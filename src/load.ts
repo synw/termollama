@@ -60,7 +60,7 @@ async function load(args?: Array<string>) {
         }
         //console.log(`Loaded ${answer.length} model${answer.length > 1 ? 's' : ''}`)
         modelsMemChart(await ollama.ps());
-        memTotalStats(getGPUMemoryInfo())
+        memTotalStats(await getGPUMemoryInfo())
     } else {
         console.log("No model loaded")
     }

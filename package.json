@@ -20,7 +20,7 @@
     "@commander-js/extra-typings": "^13.1.0",
     "@locallm/types": "^0.1.9",
     "@types/cli-progress": "^3.11.6",
-    "@types/node": "^22.13.16",
+    "@types/node": "^22.14.1",
     "ts-node": "^10.9.2",
     "tslib": "2.8.1",
     "typescript": "^5.8.2"

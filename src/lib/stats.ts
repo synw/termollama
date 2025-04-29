@@ -5,7 +5,24 @@ import { ListResponse } from "ollama/dist/index.js";
 import TsCharts from "tcharts.js";
 import { GPUCard, TotalMemoryInfo } from "../interfaces.js";
 import { formatFileSize } from "./utils.js";
+import os from "os";
 
+function cpuMemStats() {
+    const total = os.totalmem();
+    const free = os.freemem();
+    const used = total-free;
+    const bar = new SingleBar({
+        format: `RAM [{bar}] {percentage}% | {used} used / {free} free`,
+        barCompleteChar: '=',
+        barIncompleteChar: '.',
+        hideCursor: true,
+    });
+    bar.start(total, used, {
+        free: formatFileSize(free),
+        used: formatFileSize(used),
+    });
+    bar.stop()
+}
 
 function memStats(info: {
     cards: GPUCard[];
@@ -64,4 +81,9 @@ function modelsMemChart(modelsData: ListResponse) {
     console.log(box.string());
 }
 
-export { memStats, memTotalStats, modelsMemChart };
+export {
+    memStats,
+    cpuMemStats,
+    memTotalStats,
+    modelsMemChart,
+};

@@ -60,14 +60,16 @@ async function ps(showGpuInfo = true) {
     }
     dt.push("Unload in");
     dt.push("Gpu usage");
-    totalGpuMem = getTotalGPUMem();
+    totalGpuMem = await getTotalGPUMem();
     models.sort((a, b) => b.raw_size_vram - a.raw_size_vram);
     const tdata = new Array<Array<string>>(dt);
     for (const m of models) {
         let name = m.name;
-        let gpuOccupation = "";
+        let gpuOccupation = "0%";
         name = m.name;
-        gpuOccupation = `${getGPUOccupationPercent(totalGpuMem, m.raw_size_vram)}%`;
+        if (m.raw_size_vram > 0) {
+            gpuOccupation = `${getGPUOccupationPercent(totalGpuMem, m.raw_size_vram)}%`;
+        }
         const size = m.isLoaded ? m.size_vram : m.size;
         const mdata = [name, size];
         if (hasOffload) {
@@ -82,7 +84,7 @@ async function ps(showGpuInfo = true) {
     //console.log();
     // gpu total mem
     if (showGpuInfo) {
-        memTotalStats(getGPUMemoryInfo());
+        memTotalStats(await getGPUMemoryInfo());
     }
 }
 

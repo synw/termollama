@@ -3,7 +3,7 @@ import { argv } from 'process';
 import { serve } from './serve.js';
 import { ps } from './ps.js';
 import { search } from './search.js';
-import { memStats, memTotalStats, modelsMemChart } from './lib/stats.js';
+import { cpuMemStats, memStats, memTotalStats, modelsMemChart } from './lib/stats.js';
 import { getGPUMemoryInfo } from './lib/gpu.js';
 import { confEnv } from "./env.js";
 import { Cmd } from './interfaces.js';
@@ -140,12 +140,17 @@ async function main(useDefault = false) {
             await keepAlive();
             break;
         case "default":
-            const info = getGPUMemoryInfo();
-            if (info.cards.length > 1) {
-                memStats(info);
+            try {
+                const info = await getGPUMemoryInfo();
+                if (info.cards.length > 1) {
+                    memStats(info);
+                }
+                await ps(false);
+                memTotalStats(info);
+            } catch (e) {
+                await ps(false);
+                cpuMemStats()
             }
-            await ps(false);
-            memTotalStats(info);
             if (!useDefault) {
                 await processAction();
             }
