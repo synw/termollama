@@ -55,7 +55,7 @@ function modelsMemChart(modelsData: ListResponse) {
     const box = new Box(110, 10);
     const data = new Array<{ name: string, value: number }>();
     modelsData.models.forEach((m) => {
-        data.push({ name: `${m.name.split(":")[0]}(${formatFileSize(m.size_vram)}) `, value: m.size_vram })
+        data.push({ name: `${m.name}(${formatFileSize(m.size_vram)}) `, value: m.size_vram })
     });
     /*const fmem = parseFloat((info.totalMemory.totalMemoryGB - info.totalMemory.usedMemoryGB).toFixed(1));
     console.log("FM", fmem);

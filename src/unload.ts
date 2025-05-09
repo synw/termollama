@@ -1,11 +1,13 @@
 import { checkbox } from '@inquirer/prompts';
-import { memTotalStats, modelsMemChart } from './lib/stats.js';
-import { getGPUMemoryInfo } from './lib/gpu.js';
+import { ListResponse } from 'ollama';
+import ora from 'ora';
 import { execute } from "./lib/execute.js";
+import { getGPUMemoryInfo } from './lib/gpu.js';
+import { memTotalStats, modelsMemChart } from './lib/stats.js';
 import { ollama } from './state.js';
 
-async function unload() {
-    const runningModels = (await ollama.ps()).models.map(m => m.model);
+async function unload(rml: ListResponse) {
+    const runningModels = rml.models.map(m => m.model);
     const choices: Array<{ name: string, value: string }> = [];
     runningModels.forEach((m) => {
         choices.push({
@@ -19,8 +21,9 @@ async function unload() {
     });
     if (answer.length > 0) {
         for (const m of answer) {
-            console.log("Unloading", m);
+            const spinner = ora('Unloading ' + m).start();
             await execute("ollama", ["stop", m], { onStdout: (t) => null });
+            spinner.stopAndPersist({ text: m, symbol: "-" });
         }
         //console.log(`Unloaded ${answer.length} model${answer.length > 1 ? 's' : ''}`);
         await new Promise(resolve => setTimeout(resolve, 350));
@@ -31,4 +34,4 @@ async function unload() {
     }
 }
 
-export { unload }
+export { unload };

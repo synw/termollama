@@ -1,7 +1,9 @@
-import { checkbox } from '@inquirer/prompts';
+import { checkbox, expand } from '@inquirer/prompts';
+import ora from 'ora';
 import { memTotalStats, modelsMemChart } from './lib/stats.js';
 import { getGPUMemoryInfo } from './lib/gpu.js';
 import { ollama } from './state.js';
+import { selectModelCtx } from './ctx.js';
 
 async function load(args?: Array<string>) {
     const res = await ollama.list();
@@ -55,8 +57,11 @@ async function load(args?: Array<string>) {
     });
     if (answer.length > 0) {
         for (const m of answer) {
-            await ollama.generate({ prompt: "", model: m });
-            console.log("Loaded", m)
+            const mctx = await selectModelCtx();
+            const spinner = ora('Loading ' + m).start();
+            await ollama.generate({ prompt: "", model: m, options: { num_predict: 1, num_ctx: parseInt(mctx) } });
+            //console.log("Loaded", m)
+            spinner.stopAndPersist({ text: m, symbol: "+" });
         }
         //console.log(`Loaded ${answer.length} model${answer.length > 1 ? 's' : ''}`)
         modelsMemChart(await ollama.ps());

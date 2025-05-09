@@ -52,7 +52,7 @@ interface KeyPress {
     shift: boolean;
 }
 
-type Cmd = "serve" | "env" | "load" | "unload" | "mem" | "search" | "keepAlive" | "models" | "default";
+type Cmd = "serve" | "env" | "load" | "unload" | "mem" | "search" | "keepAlive" | "models" | "ctx" | "default";
 
 export {
     GPUCard,

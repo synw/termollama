@@ -14,6 +14,7 @@ import { gpus, initState, ollama } from './state.js';
 import { keepAlive } from './keepalive.js';
 import { ListResponse } from 'ollama/dist';
 import { models } from './models.js';
+import { setCtx } from './ctx.js';
 
 async function ollamaPsOrQuit(): Promise<ListResponse> {
     const ps = await ollama.ps();
@@ -79,6 +80,9 @@ async function main(useDefault = false) {
                 case "-mem":
                     cmd = "mem";
                     break;
+                case "-ctx":
+                    cmd = "ctx";
+                    break;
                 case "-k":
                     cmd = "keepAlive";
                     break;
@@ -113,17 +117,22 @@ async function main(useDefault = false) {
             await confEnv();
             break;
         case "mem":
-            modelsMemChart(await ollamaPsOrQuit());
+            const rml = await ollamaPsOrQuit();
+            modelsMemChart(rml);
             break;
         case "models":
             await models(args);
             break;
+        case "ctx":
+            await setCtx();
+            break;
         case "load":
             await load(args);
+            //await processAction();
             break;
         case "unload":
-            await ollamaPsOrQuit();
-            await unload();
+            const rml1 = await ollamaPsOrQuit();
+            await unload(rml1);
             break;
         case "search":
             if (!searchAction) {
@@ -136,8 +145,8 @@ async function main(useDefault = false) {
             }
             break;
         case "keepAlive":
-            await ollamaPsOrQuit();
-            await keepAlive();
+            const rml2 = await ollamaPsOrQuit();
+            await keepAlive(rml2);
             break;
         case "default":
             const info = getGPUMemoryInfo();
@@ -165,18 +174,19 @@ async function processAction() {
             //await main([])
             break;
         case "k":
-            await ollamaPsOrQuit()
-            await keepAlive();
+            const rml = await ollamaPsOrQuit()
+            await keepAlive(rml);
             break;
         case "u":
-            await ollamaPsOrQuit()
-            await unload();
+            const rml1 = await ollamaPsOrQuit()
+            await unload(rml1);
             break
-        /*case "i":
-            await main([])
-            break*/
+        case "c":
+            await setCtx()
+            break
         case "m":
-            modelsMemChart(await ollamaPsOrQuit());
+            const rml2 = await ollamaPsOrQuit();
+            modelsMemChart(rml2);
             await processAction();
             break
         default:
