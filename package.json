@@ -2,7 +2,7 @@
   "name": "termollama",
   "description": "A linux command line utility for Ollama",
   "repository": "https://github.com/synw/termollama",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "scripts": {
     "build": "tsc"
   },
@@ -28,7 +28,7 @@
     "typescript": "^5.8.2"
   },
   "bin": {
-    "olm": "./dist/dispatch.js"
+    "olm": "./dist/index.js"
   },
   "type": "module",
   "files": [

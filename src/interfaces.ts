@@ -39,6 +39,26 @@ interface ExtendedModelData extends ModelData {
     quant: string;
 }
 
+interface StateOptions {
+    useInstance?: string;
+    useHttps?: boolean;
+}
+
+interface ServeOptions {
+    flashAttention?: boolean;
+    kv4?: boolean;
+    kv8?: boolean;
+    debug?: boolean;
+    keepAlive?: string;
+    ctx?: number;
+    maxLoadedModels?: number;
+    maxQueue?: number;
+    port?: number;
+    cpu: boolean;
+    gpu?: Array<number>;
+    host?: string;
+}
+
 interface ParsedOptions {
     flags: string[];
     [key: string]: number | string[]; // Allow both numbers and the 'flags' array
@@ -52,7 +72,7 @@ interface KeyPress {
     shift: boolean;
 }
 
-type Cmd = "serve" | "env" | "load" | "unload" | "mem" | "search" | "keepAlive" | "models" | "ctx" | "default";
+type CmdName = "env" | "load" | "unload" | "mem" | "search" | "keepAlive" | "models" | "ctx" | "default";
 
 export {
     GPUCard,
@@ -60,7 +80,9 @@ export {
     EnvVars,
     ParsedOptions,
     ModelData,
-    Cmd,
+    CmdName,
     KeyPress,
     ExtendedModelData,
+    StateOptions,
+    ServeOptions,
 }

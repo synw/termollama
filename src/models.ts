@@ -1,26 +1,36 @@
 import color from "ansi-colors";
-import { ModelResponse } from 'ollama/dist/index.js';
-import { ExtendedModelData, ModelData } from './interfaces.js';
+import { ListResponse, ModelResponse } from 'ollama/dist/index.js';
+import { ExtendedModelData, ModelData, StateOptions } from './interfaces.js';
 import { formatFileSize, getTimeHumanizedUntil } from './lib/utils.js';
 import { ollama } from './state.js';
 // @ts-ignore
 import TCharts from "tcharts.js";
 import { getGPUOccupationPercent, getTotalGPUMem } from "./lib/gpu.js";
+import { ollamaPs } from "./ps.js";
 
-async function models(args: Array<string>) {
-    const res = await ollama.list();
-    const ps = await ollama.ps();
-    const runningModels = ps.models.map(m => m);
-    let _models = res.models.sort((a, b) => a.name.localeCompare(b.name));
-    const allModels: Record<string, ModelResponse> = {};
-    _models.forEach((m) => {
-        const rm = runningModels.find(x => x.model == m.model);
-        if (rm) {
-            allModels[m.model] = rm;
-        } else {
-            allModels[m.model] = m;
+async function models(filters: Array<string>) {
+    let res: ListResponse;
+    try {
+        res = await ollama.list();
+    } catch (e: any) {
+        if (e.toString().includes("fetch failed")) {
+            console.warn("No instance of Ollama is running");
+            process.exit(0)
         }
+        throw new Error(`${e}`)
+    }
+    const runningModels: Record<string, ModelResponse> = {};
+    const runningModelsList = (await ollamaPs()).models;
+    const runningModelsNames = new Array<string>();
+    runningModelsList.forEach((m) => {
+        runningModelsNames.push(m.name);
+        runningModels[m.name] = m
     });
+    const allModels: Record<string, ModelResponse> = {};
+    // sort models list
+    let _models = res.models.sort((a, b) => a.name.localeCompare(b.name));
+    // dispatch models
+    _models.forEach((m) => allModels[m.model] = m);
     if (_models.length == 0) {
         console.log("No models found");
         return
@@ -29,24 +39,13 @@ async function models(args: Array<string>) {
     const models = new Array<ExtendedModelData>();
     let hasOffload = false;
     let hasModelsLoaded = false;
-    // filter
-    let filters: Array<string> = [];
-    //console.log("args", args);
-    args?.forEach((a) => {
-        if (a != "-m") {
-            filters.push(a)
-        }
-    });
-    let hasFilters = false;
-    if (filters.length > 0) {
-        hasFilters = true;
-    }
+    const hasFilters = filters.length > 0;
     for (const [name, m] of Object.entries(allModels)) {
         if (hasFilters) {
-            let isIncluded = true;
+            let isIncluded = false;
             for (const f of filters) {
-                if (!m.model.includes(f)) {
-                    isIncluded = false;
+                if (m.model.includes(f)) {
+                    isIncluded = true;
                     break;
                 }
             }
@@ -55,7 +54,7 @@ async function models(args: Array<string>) {
             }
         }
         const modelData = {} as ExtendedModelData;
-        //console.log("M", m);
+        const isRunning = runningModelsNames.includes(name);
         modelData.name = name;
         modelData.size = formatFileSize(m.size);
         modelData.quant = m.details.quantization_level;
@@ -65,18 +64,19 @@ async function models(args: Array<string>) {
         modelData.size_vram = "";
         modelData.raw_size_vram = 0;
         modelData.expire = "";
-        modelData.isLoaded = m?.size_vram ? true : false;
+        modelData.isLoaded = isRunning;
         if (modelData.isLoaded) {
             hasModelsLoaded = true;
             //console.log("LM", m);
-            modelData.raw_size_vram = m.size_vram;
-            modelData.size_vram = formatFileSize(m.size_vram);
-            if (m.size > m.size_vram) {
-                modelData.size_ram = formatFileSize(m.size - m.size_vram);
-                modelData.ram_percentage = (((m.size - m.size_vram) / m.size) * 100).toFixed(1) + '%';
+            const rm = runningModels[modelData.name];
+            modelData.raw_size_vram = rm.size_vram;
+            modelData.size_vram = formatFileSize(rm.size_vram);
+            if (rm.size > rm.size_vram) {
+                modelData.size_ram = formatFileSize(rm.size - rm.size_vram);
+                modelData.ram_percentage = (((rm.size - rm.size_vram) / rm.size) * 100).toFixed(1) + '%';
                 hasOffload = true;
             }
-            modelData.expire = getTimeHumanizedUntil(m.expires_at.toString());
+            modelData.expire = getTimeHumanizedUntil(rm.expires_at.toString());
         } else {
             //console.log("M", m)
         }

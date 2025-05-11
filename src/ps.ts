@@ -1,16 +1,15 @@
-import { memTotalStats } from './lib/stats.js';
+import { ExtendedModelData } from './interfaces.js';
 import { getGPUMemoryInfo, getGPUOccupationPercent, getTotalGPUMem } from './lib/gpu.js';
+import { memTotalStats } from './lib/stats.js';
 import { formatFileSize, getTimeHumanizedUntil } from './lib/utils.js';
-import { ExtendedModelData, ModelData } from './interfaces.js';
+import { ListResponse } from 'ollama/dist/index.js';
 // @ts-ignore
 import TCharts from "tcharts.js";
 import { ollama } from './state.js';
 
+
 async function ps(showGpuInfo = true) {
-    //console.log(JSON.stringify(await ollama.ps(), null, "  "));
-    //const res = await execute("ollama", ["ps"]);
-    //console.log(res);
-    const ps = await ollama.ps();
+    const ps = await ollamaPs();
     let data = ps.models;
     //console.log(data);
     if (data.length == 0) {
@@ -86,5 +85,31 @@ async function ps(showGpuInfo = true) {
     }
 }
 
-export { ps }
+async function ollamaPs(): Promise<ListResponse> {
+    let ps: ListResponse;
+    try {
+        ps = await ollama.ps();
+    } catch (e: any) {
+        if (e.toString().includes("fetch failed")) {
+            console.warn("No instance of Ollama is running");
+            process.exit(0)
+        }
+        throw new Error(`${e}`)
+    }
+    return ps
+}
+
+async function ollamaPsOrQuit(): Promise<ListResponse> {
+    const ps = await ollamaPs();
+    if (ps.models.length == 0) {
+        console.log("No models are loaded in memory")
+        process.exit(0)
+    }
+    return ps
+}
+
+export {
+    ollamaPs,
+    ollamaPsOrQuit, ps
+};
 

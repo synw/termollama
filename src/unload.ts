@@ -5,6 +5,7 @@ import { execute } from "./lib/execute.js";
 import { getGPUMemoryInfo } from './lib/gpu.js';
 import { memTotalStats, modelsMemChart } from './lib/stats.js';
 import { ollama } from './state.js';
+import { ollamaPs } from './ps.js';
 
 async function unload(rml: ListResponse) {
     const runningModels = rml.models.map(m => m.model);
@@ -27,7 +28,7 @@ async function unload(rml: ListResponse) {
         }
         //console.log(`Unloaded ${answer.length} model${answer.length > 1 ? 's' : ''}`);
         await new Promise(resolve => setTimeout(resolve, 350));
-        modelsMemChart(await ollama.ps());
+        modelsMemChart(await ollamaPs());
         memTotalStats(getGPUMemoryInfo())
     } else {
         console.log("No models unloaded")
