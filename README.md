@@ -1,5 +1,7 @@
 # Termollama
 
+[![pub package](https://img.shields.io/npm/v/termollama)](https://www.npmjs.com/package/termollama)
+
 A Linux command line utility for Ollama. Features:
 
 - Quick gpu vram usage stats
