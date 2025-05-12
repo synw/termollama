@@ -18,6 +18,7 @@ const serveOptions: Array<Option> = [
     new Option("-n, --num-parallel <number>", ""),
     new Option("--host <hostname>", ""),
     new Option("-p, --port <number>", ""),
+    new Option("-r, --registry <path>", "use a model registry directory"),
     new Option("-g, --gpu <number...>", "").argParser((v: any, p: any) => {
         const iv = parseInt(v);
         if (isNaN(iv)) {

@@ -8,7 +8,7 @@ async function serve(options: ServeOptions) {
     if (options?.kv4) {
         process.env["OLLAMA_KV_CACHE_TYPE"] = "q4_0";
     } else if (options?.kv8) {
-        process.env["OLLAMA_KV_CACHE_TYPE"] = "q4_0";
+        process.env["OLLAMA_KV_CACHE_TYPE"] = "q8_0";
     }
     if (options?.debug) {
         process.env["OLLAMA_DEBUG"] = "1";
@@ -35,6 +35,9 @@ async function serve(options: ServeOptions) {
     }
     if (options?.maxQueue) {
         process.env["OLLAMA_MAX_QUEUE"] = options.maxQueue.toString()
+    }
+    if (options?.registry) {
+        process.env["OLLAMA_MODELS"] = options.registry;
     }
     await execute("ollama", ["serve"])
 }

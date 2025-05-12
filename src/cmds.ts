@@ -37,14 +37,12 @@ function initCommands(program: Command) {
         .description("set context length for a model loaded in memory")
         .action(async (options) => await setCtx(await ollamaPsOrQuit()));
     stateOptions.forEach(o => ctxCmd.addOption(o));
-    const loadCmd = program.command("load")
-        //.alias("l")
+    const loadCmd = program.command("load").alias("l")
         .description("load a model in memory, optional keywords filters")
         .argument("[filters...]", "filter model names: ex 'olm -m qwen mistral'")
         .action(async (filters) => await load(filters));
     stateOptions.forEach(o => loadCmd.addOption(o));
-    const unloadCmd = program.command("unload")
-        //.alias("u")
+    const unloadCmd = program.command("unload").alias("u")
         .description("unload a model from memory")
         .action(async (options) => await unload(await ollamaPsOrQuit()));
     stateOptions.forEach(o => unloadCmd.addOption(o));

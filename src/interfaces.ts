@@ -82,6 +82,7 @@ interface ServeOptions {
     cpu: boolean;
     gpu?: Array<number>;
     host?: string;
+    registry?: string;
 }
 
 interface ParsedOptions {

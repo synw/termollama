@@ -157,6 +157,7 @@ Options of `olm serve`:
 - **Num parallel**: number of parallel requests: `--num-parallel 2` or `-n 2`
 - **Port**: set the port: `--port 11485` or `-p 11485`
 - **Host**: set the hostname: `--host 192.168.1.8`
+- **Models registry**: set the directory for models registry: `--registry ~/some/path/ollama_models` or `-r ~/some/path/ollama_models`
 
 #### Key Options:
 - **Flash Attention**: `-f`
@@ -194,6 +195,12 @@ olm s -8k 10m -m 4
 
 Use fp8 kv cache (flash attention will be used as well), models will stay loaded for ten minutes
 and a max of 4 models can be loaded at the same times
+
+```bash
+olm s -r ~/some/path/ollama_models
+```
+
+Use a custom models registry directory
 
 ## Information about gguf files
 
