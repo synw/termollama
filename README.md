@@ -197,6 +197,8 @@ and a max of 4 models can be loaded at the same times
 
 ## Information about gguf files
 
+### Show registries info
+
 To show information about gguf models located in the Ollama internal registries:
 
 ```bash
@@ -205,16 +207,50 @@ olm gguf
 olm g
 ```
 
-This will display information about models from the Ollama model storage registries
+This will display information about models from the Ollama model storage registries. Ouptut:
 
-### Usage
+```
+---------  Registry hf.co/bartowski ---------
+hf.co/bartowski
+   NousResearch_DeepHermes-3-Llama-3-8B-Preview-GGUF (1 model)
+    - Q6_K_L
 
-- **Show model info**: show information about a specific model:
-  ```bash
-  olm gguf -m qwen3:0.6b
-  ```
+---------  Registry ollama.com ---------
+ollama.com
+   deepseek-coder-v2 (1 model)
+    - 16b-lite-instruct-q8_0
 
-- **Show template info**: show a model's template:
-  ```bash
-  olm gguf -t qwen3:0.6b
-  ```
+---------  Registry registry.ollama.ai ---------
+registry.ollama.ai
+  gemma3 (3 models)
+    - 12b
+    - 27b
+    - 4b-it-q8_0
+  ...
+```
+
+### Show model info 
+
+To show information about a specific model:
+
+```bash
+olm gguf -m qwen3:0.6b
+```
+
+Output:
+
+```
+Model qwen3:0.6b found in registry registry.ollama.ai
+  size: 498.4 MiB
+  quant: Q4_K_M
+  blob: /home/me/.ollama/blobs/sha256-7f4030143c1c477224c5434f8272c662a8b042079a0a584f0a27a1684fe2e1fx
+  link: ln -s /home/me/.ollama/blobs/sha256-7f4030143c1c477224c5434f8272c662a8b042079a0a584f0a27a1684fe2e1fx qwen3_0.6b_Q4_K_M.gguf
+```
+
+### Show template info
+
+To show a model's template:
+
+```bash
+olm gguf -t qwen3:0.6b
+```
