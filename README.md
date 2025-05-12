@@ -183,24 +183,23 @@ olm s -fg 0
 Run with flash attention on GPU 0 only
 
 ```bash
-olm s -p 11385 -c 8192 --cpu
+olm s -c 8192 --cpu
 ```
 
-Run on localhost:11385 with a default context window of 8192 and using only the cpu
-
+Run with a default context window of 8192 using only the cpu
 
 ```bash
 olm s -8k 10m -m 4
 ```
 
-Use fp8 kv cache (flash attention will be used as well), models will stay loaded for ten minutes
+Use fp8 kv cache (flash attention will be used), models will stay loaded for ten minutes
 and a max of 4 models can be loaded at the same times
 
 ```bash
-olm s -r ~/some/path/ollama_models
+olm s -p 11385 -r ~/some/path/ollama_models
 ```
 
-Use a custom models registry directory
+Run on localhost:11385 with a custom models registry directory
 
 ## Information about gguf files
 
