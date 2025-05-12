@@ -15,6 +15,8 @@ as well as the `npm` command.
 
 ```bash
 npm i -g termollama
+# to update:
+npm i -g termollama@latest
 ```
 
 The `olm` command is now available.
@@ -35,29 +37,62 @@ on the screen for 5 seconds and disapear. It allows quick actions:
 
 ## Models
 
-To list all the available models: `olm models` or `olm m`.
+To list all the available models:
 
-To search for a model with filters: `olm m qwen coder`
+```bash
+olm models
+# or
+olm m
+```
+
+To search for a model with filters:
+
+```bash
+olm m qwen coder
+```
 
 ### Load models
 
-Use the `olm load` or `olm l` command to list all the models and select some to load. Output after models selection:
+List all the models and select some to load:
+
+```bash
+olm load
+# or
+olm l
+```
+
+Output after models selection:
 
 ![](doc/img/load.png)
 
-To find models by name and load them use the command with your search arguments. Ouptut of
+To find models by name and load them use the command with your search arguments. Output of
 `olm l qw`:
 
 ![](doc/img/search.png)
 
 ### Unload models
 
-Use the `olm unload` or `olm u` command to unload models. Pick the models to unload from the list.
+To unload models:
+
+```bash
+olm unload
+# or
+olm u
+```
+
+Pick the models to unload from the list.
 
 ### Keep alive
 
-To modify the keep alive parameters per model use `olm keep-alive` or `olm k`. Pick a model in the list
-and change the keep alive value.
+To modify the keep alive parameters per model: 
+
+```bash
+olm keep-alive
+# or
+olm k
+```
+
+Pick a model in the list and change the keep alive value.
 
 Valid time values:
 - `5m` → 5 minutes
@@ -66,11 +101,23 @@ Valid time values:
 
 ### Context window length
 
-To set the context window used by an model loaded in memory run `olm ctx` or `olm c`
+To set the context window used by an model loaded in memory:
+
+```bash
+olm ctx
+# or
+olm c
+```
 
 ### Environment variables
 
-To show the environment variables used by Ollama run `olm env` or `olm e`
+To show the environment variables used by Ollama:
+
+```bash
+olm env
+# or
+olm e
+```
 
 ## Instance options
 
@@ -86,12 +133,15 @@ To use a different instance than the default `localhost:11434`:
 
 ## Serve command
 
-An `olm serve` or `olm s` command is available, equivalent to `ollama serve` but with flag options.
+A serve command is available, equivalent to `ollama serve` but with flag options.
+
+```bash
+olm serve
+# or
+olm s
+```
 
 ### Usage
-
-Note: an `olm env` command is available to display the environnement variables
-used by Ollama
 
 Options of `olm serve`:
 
@@ -108,10 +158,8 @@ Options of `olm serve`:
 - **Port**: set the port: `--port 11485` or `-p 11485`
 - **Host**: set the hostname: `--host 192.168.1.8`
 
-### Examples
-
 #### Key Options:
-- **Flash Attention**: `-f` (improves performance)
+- **Flash Attention**: `-f`
 - **KV Cache**: 
   - `-4` → `q4_0` quantization (low memory)
   - `-8` → `q8_0` quantization (balanced)
@@ -119,11 +167,13 @@ Options of `olm serve`:
   - `--cpu` → Run on CPU only
   - `-g 0 1` → Use specific GPUs (e.g., GPUs 0 and 1)
 - **Memory Management**:
-  - `-k 1h` → Keep alive timeout (default 30m)
+  - `-k 15m` → Keep alive timeout
   - `-c 8192` → Default context length
 - **Server Settings**:
   - `-p 11434` → Port (default 11434)
   - `-h 0.0.0.0` → Host address
+
+### Examples
 
 ```bash
 olm s -fg 0
@@ -143,4 +193,28 @@ olm s -8k 10m -m 4
 ```
 
 Use fp8 kv cache (flash attention will be used as well), models will stay loaded for ten minutes
-and a max of 4 models can be loaded at the same time
+and a max of 4 models can be loaded at the same times
+
+## Information about gguf files
+
+To show information about gguf models located in the Ollama internal registries:
+
+```bash
+olm gguf
+# or
+olm g
+```
+
+This will display information about models from the Ollama model storage registries
+
+### Usage
+
+- **Show model info**: show information about a specific model:
+  ```bash
+  olm gguf -m qwen3:0.6b
+  ```
+
+- **Show template info**: show a model's template:
+  ```bash
+  olm gguf -t qwen3:0.6b
+  ```

@@ -1,8 +1,8 @@
-import { expand, checkbox } from '@inquirer/prompts';
+import { checkbox, expand } from '@inquirer/prompts';
+import { ListResponse } from 'ollama';
 import ora from 'ora';
-import { ollama } from './state.js';
 import { ps } from './ps.js';
-import { ListResponse } from 'ollama/dist/index.js';
+import { ollama } from './state.js';
 
 const ctxChoices = [
     {
@@ -79,4 +79,4 @@ async function setCtx(loadedModels: ListResponse) {
     }
 }
 
-export { setCtx, selectModelCtx }
+export { selectModelCtx, setCtx };

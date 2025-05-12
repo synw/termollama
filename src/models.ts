@@ -1,6 +1,5 @@
-import color from "ansi-colors";
 import { ListResponse, ModelResponse } from 'ollama/dist/index.js';
-import { ExtendedModelData, ModelData, StateOptions } from './interfaces.js';
+import { ExtendedModelData } from './interfaces.js';
 import { formatFileSize, getTimeHumanizedUntil } from './lib/utils.js';
 import { ollama } from './state.js';
 // @ts-ignore
@@ -119,5 +118,5 @@ async function models(filters: Array<string>) {
 }
 
 export {
-    models,
-}
+    models
+};

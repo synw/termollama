@@ -2,7 +2,6 @@ import { execSync } from 'node:child_process';
 import { GPUCard, TotalMemoryInfo } from '../interfaces.js';
 import { gpus } from '../state.js';
 
-
 function getTotalGPUMem(): number {
     const gpuInfo = execSync('nvidia-smi --query-gpu=index,name,memory.total,memory.used --format=csv,noheader,nounits')
         .toString()

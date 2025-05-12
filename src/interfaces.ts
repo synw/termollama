@@ -39,6 +39,31 @@ interface ExtendedModelData extends ModelData {
     quant: string;
 }
 
+interface OllamaModelFamilly {
+    name: string;
+    path: string;
+    models: Array<{ name: string, path: string }>;
+}
+
+interface OllamaRegistry {
+    name: string;
+    path: string;
+    modelFamilies: Array<OllamaModelFamilly>;
+}
+
+interface ModelInfo {
+    registry: string;
+    familly: string;
+    confName: string;
+    name: string;
+    confPath: string;
+    blobPath: string;
+    template: string;
+    params: string;
+    size: number;
+    quant: string;
+}
+
 interface StateOptions {
     useInstance?: string;
     useHttps?: boolean;
@@ -85,4 +110,7 @@ export {
     ExtendedModelData,
     StateOptions,
     ServeOptions,
+    OllamaModelFamilly,
+    OllamaRegistry,
+    ModelInfo,
 }

@@ -4,7 +4,6 @@ import ora from 'ora';
 import { execute } from "./lib/execute.js";
 import { getGPUMemoryInfo } from './lib/gpu.js';
 import { memTotalStats, modelsMemChart } from './lib/stats.js';
-import { ollama } from './state.js';
 import { ollamaPs } from './ps.js';
 
 async function unload(rml: ListResponse) {

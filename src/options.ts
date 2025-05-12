@@ -27,7 +27,19 @@ const serveOptions: Array<Option> = [
     }),
 ];
 
+const ggufOptions: Array<Option> = [
+    new Option(
+        "-m, --model <query...>",
+        "show information about a model.\n Use this one of these formats to search for a model: \n olm -m qwen3:0.6b\n olm -m qwen3 0.6b"
+    ),
+    new Option(
+        "-t, --template <query...>",
+        "show a model's template.\n Use this one of these formats to search for a model: \n olm -m qwen3:0.6b\n olm -m qwen3 0.6b"
+    ),
+];
+
 export {
     stateOptions,
     serveOptions,
+    ggufOptions,
 }

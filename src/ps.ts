@@ -2,7 +2,7 @@ import { ExtendedModelData } from './interfaces.js';
 import { getGPUMemoryInfo, getGPUOccupationPercent, getTotalGPUMem } from './lib/gpu.js';
 import { memTotalStats } from './lib/stats.js';
 import { formatFileSize, getTimeHumanizedUntil } from './lib/utils.js';
-import { ListResponse } from 'ollama/dist/index.js';
+import { ListResponse } from 'ollama';
 // @ts-ignore
 import TCharts from "tcharts.js";
 import { ollama } from './state.js';
