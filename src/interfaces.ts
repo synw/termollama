@@ -35,6 +35,7 @@ interface ModelData {
 interface ExtendedModelData extends ModelData {
     isLoaded: boolean;
     raw_size_vram: number;
+    raw_size_ram: number;
     params: string;
     quant: string;
 }

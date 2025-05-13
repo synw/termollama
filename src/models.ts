@@ -92,7 +92,7 @@ async function models(filters: Array<string>) {
     if (hasModelsLoaded) {
         dt.push("Unload in");
         dt.push("Gpu usage");
-        totalGpuMem = getTotalGPUMem();
+        totalGpuMem = await getTotalGPUMem();
     }
     const tdata = new Array<Array<string>>(dt);
     for (const m of models) {

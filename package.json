@@ -2,7 +2,7 @@
   "name": "termollama",
   "description": "A linux command line utility for Ollama",
   "repository": "https://github.com/synw/termollama",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "scripts": {
     "build": "tsc"
   },

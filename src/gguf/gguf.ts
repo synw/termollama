@@ -1,4 +1,4 @@
-import { runtimeParamError } from "../user_msgs.js";
+import { runtimeParamError } from "../lib/user_msgs.js";
 import { ModelInfo, OllamaRegistry } from "../interfaces.js";
 import { displayModel, displayRegistries, displayTemplate } from "./display.js";
 import { detectConfPath, detectRegistries, readModelInfo, readRegistries } from "./utils.js";

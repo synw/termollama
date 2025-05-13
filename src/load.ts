@@ -1,7 +1,7 @@
 import { checkbox } from '@inquirer/prompts';
 import ora from 'ora';
 import { selectModelCtx } from './ctx.js';
-import { getGPUMemoryInfo } from './lib/gpu.js';
+import { getGPUMemoryInfo, systemHasGpu } from './lib/gpu.js';
 import { memTotalStats, modelsMemChart } from './lib/stats.js';
 import { ollama } from './state.js';
 import { ollamaPs } from './ps.js';
@@ -57,7 +57,11 @@ async function load(filters: Array<string>) {
         }
         //console.log(`Loaded ${answer.length} model${answer.length > 1 ? 's' : ''}`)
         modelsMemChart(await ollamaPs());
-        memTotalStats(getGPUMemoryInfo())
+        const hasGpu = await systemHasGpu();
+        //sconsole.log("has gpu", hasGpu);
+        if (hasGpu) {
+            memTotalStats(await getGPUMemoryInfo())
+        }
     } else {
         console.warn("No model loaded")
     }

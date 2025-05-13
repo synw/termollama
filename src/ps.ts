@@ -8,13 +8,15 @@ import TCharts from "tcharts.js";
 import { ollama } from './state.js';
 
 
-async function ps(showGpuInfo = true) {
+async function ps(showGpuInfo = true): Promise<boolean> {
     const ps = await ollamaPs();
     let data = ps.models;
     //console.log(data);
     if (data.length == 0) {
-        return
+        return false
     }
+    const totalGpuMem = await getTotalGPUMem();
+    const hasGpu = totalGpuMem > 0;
     const choices: Array<{ name: string, value: string }> = [];
     const models = new Array<ExtendedModelData>();
     let hasOffload = false;
@@ -25,18 +27,19 @@ async function ps(showGpuInfo = true) {
         modelData.size = formatFileSize(m.size);
         modelData.quant = m.details.quantization_level;
         modelData.params = m.details.parameter_size;
-        modelData.size_ram = "0";
-        modelData.ram_percentage = "0%";
+        modelData.size_ram = hasGpu ? "0" : formatFileSize(m.size);
+        modelData.ram_percentage = hasGpu ? "0%" : "100%";
         modelData.size_vram = "0";
-        modelData.raw_size_vram = 0;
+        modelData.raw_size_ram = hasGpu ? 0 : m.size;
         modelData.expire = "";
-        //console.log("LM", m);
-        modelData.raw_size_vram = m.size_vram;
-        modelData.size_vram = formatFileSize(m.size_vram);
-        if (m.size > m.size_vram) {
-            modelData.size_ram = formatFileSize(m.size - m.size_vram);
-            modelData.ram_percentage = (((m.size - m.size_vram) / m.size) * 100).toFixed(1) + '%';
-            hasOffload = true;
+        modelData.raw_size_vram = m?.size_vram ?? 0;
+        modelData.size_vram = m?.size_vram ? formatFileSize(m.size_vram) : "";
+        if (hasGpu) {
+            if (m.size > m.size_vram) {
+                modelData.size_ram = formatFileSize(m.size - m.size_vram);
+                modelData.ram_percentage = (((m.size - m.size_vram) / m.size) * 100).toFixed(1) + '%';
+                hasOffload = true;
+            }
         }
         modelData.expire = getTimeHumanizedUntil(m.expires_at.toString());
         models.push(modelData);
@@ -46,21 +49,25 @@ async function ps(showGpuInfo = true) {
         })
     });
     if (data.length == 0) {
-        console.log("No models are loaded in the vram");
-        return
+        console.log("No models are loaded in memory");
+        return false
     }
     // models
     const { Table } = TCharts;
     const table = new Table(0.2);
     const dt = new Array<string>("Model", "Size");
-    let totalGpuMem = 0;
-    if (hasOffload) {
+    dt.push("Unload in");
+    if (hasGpu) {
+        dt.push("Gpu usage");
+    }
+    if (hasOffload || !hasGpu) {
         dt.push("Ram")
     }
-    dt.push("Unload in");
-    dt.push("Gpu usage");
-    totalGpuMem = getTotalGPUMem();
-    models.sort((a, b) => b.raw_size_vram - a.raw_size_vram);
+    if (hasGpu) {
+        models.sort((a, b) => b.raw_size_vram - a.raw_size_vram);
+    } else {
+        models.sort((a, b) => b.raw_size_ram - a.raw_size_ram);
+    };
     const tdata = new Array<Array<string>>(dt);
     for (const m of models) {
         let name = m.name;
@@ -68,21 +75,23 @@ async function ps(showGpuInfo = true) {
         name = m.name;
         gpuOccupation = `${getGPUOccupationPercent(totalGpuMem, m.raw_size_vram)}%`;
         const size = m.isLoaded ? m.size_vram : m.size;
-        const mdata = [name, size];
-        if (hasOffload) {
+        const mdata = [name, size, m.expire];
+        if (hasOffload || !hasGpu) {
             mdata.push(m.ram_percentage)
         }
-        mdata.push(m.expire);
-        mdata.push(gpuOccupation);
+        if (hasGpu) {
+            mdata.push(gpuOccupation);
+        }
         tdata.push(mdata);
     }
     table.setData(tdata);
     console.log(table.string());
     //console.log();
     // gpu total mem
-    if (showGpuInfo) {
-        memTotalStats(getGPUMemoryInfo());
+    if (hasGpu && showGpuInfo) {
+        memTotalStats(await getGPUMemoryInfo());
     }
+    return hasOffload
 }
 
 async function ollamaPs(): Promise<ListResponse> {

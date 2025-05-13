@@ -5,7 +5,7 @@ import { confEnv } from "./env.js";
 import { ServeOptions, StateOptions } from "./interfaces.js";
 import { keepAlive } from "./keepalive.js";
 import { getGPUMemoryInfo } from "./lib/gpu.js";
-import { memStats, memTotalStats, modelsMemChart } from "./lib/stats.js";
+import { memStats, memTotalStats, modelsMemChart, ramStats } from "./lib/stats.js";
 import { load } from "./load.js";
 import { models } from "./models.js";
 import { ggufOptions, serveOptions, stateOptions } from "./options.js";
@@ -57,12 +57,22 @@ function initCommands(program: Command) {
     const statsCmd = program.command("default", { isDefault: true })
         .description("show gpu usage statistics")
         .action(async (options) => {
-            const info = getGPUMemoryInfo();
+            const info = await getGPUMemoryInfo();
+            const nCards = info.cards.length;
+            const hasGpu = nCards > 0;
+            //console.log("hasGpu", hasGpu, info);
             if (info.cards.length > 1) {
                 memStats(info);
             }
-            await ps(false);
-            memTotalStats(info);
+            const hasOffload = await ps(false);
+            //console.log("has Gpu", hasGpu);
+            //console.log("has offload", hasOffload);
+            if (hasGpu) {
+                memTotalStats(info);
+            }
+            if (!hasGpu || hasOffload) {
+                ramStats(hasGpu);
+            }
             await processAction(options);
         });
     stateOptions.forEach(o => statsCmd.addOption(o));

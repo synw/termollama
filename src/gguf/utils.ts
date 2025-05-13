@@ -2,7 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 import * as fs from 'fs';
 import { ModelInfo, OllamaRegistry } from '../interfaces.js';
-import { runtimeDataError } from '../user_msgs.js';
+import { runtimeDataError } from '../lib/user_msgs.js';
 
 function findModel(
     registriesData: Array<OllamaRegistry>, query: Array<string>
@@ -187,7 +187,6 @@ function detectConfPath(): string {
         case "linux":
             ollamaModelsDir = path.join(process.env?.HOME ?? "~", ".ollama", "models");
             break
-            break;
         case "darwin":
             ollamaModelsDir = path.join(process.env?.HOME ?? "~", "Library", "Application Support", "Ollama", "models")
             break
