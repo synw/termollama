@@ -17,7 +17,8 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "types": [
-      "node"
+      "node",
+      "jest",
     ],
     "lib": [
       "ES2022",
@@ -31,8 +32,7 @@
     }
   },
   "include": [
-    "src/**/*.ts",
-    "src/tasks",
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",

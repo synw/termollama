@@ -86,10 +86,12 @@ async function ps(showGpuInfo = true): Promise<boolean> {
     }
     table.setData(tdata);
     console.log(table.string());
-    //console.log();
     // gpu total mem
     if (hasGpu && showGpuInfo) {
-        memTotalStats(await getGPUMemoryInfo());
+        const { hasGPU, info } = await getGPUMemoryInfo();
+        if (hasGPU) {
+            memTotalStats(info)
+        }
     }
     return hasOffload
 }

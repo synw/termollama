@@ -1,33 +1,90 @@
 import os from "os";
-import { SingleBar } from "cli-progress";
+import { MultiBar, SingleBar } from "cli-progress";
 import color from "ansi-colors";
 import { ListResponse } from "ollama/dist/index.js";
 // @ts-ignore
 import TsCharts from "tcharts.js";
-import { GPUCard, TotalMemoryInfo } from "../interfaces.js";
+import { GPUCardInfo, GPUInfo, TotalMemoryInfo } from "../interfaces.js";
 import { formatFileSize } from "./utils.js";
 
+interface CardBarInfo {
+    index: number;
+    totalMemory: number;
+    usedMemory: number;
+    displayBar: string;
+    displayMemory: string;
+    usedMemoryPercent: number;
+    powerDraw: number;
+    powerPercent: number;
+    powerLimit: number;
+    displayTemperature: string;
+    powerDrawPercent: number;
+}
 
-function memStats(info: {
-    cards: GPUCard[];
-    totalMemory: TotalMemoryInfo;
-}) {
+function memStats(info: GPUInfo) {
     if (info.cards.length > 1) {
+        const barData = new Array<CardBarInfo>();
+        const displayBar = "GPU {index} [{bar}] {percentage}%";
+        const displayGpu = '{displayUsedMemory} used - {displayFreeMemory} free';
+        const displayMemory = '{displayMemory}';
+        const displayWatt = "{powerDraw}W " + color.dim("{powerPercent}%");
+        const displayTemp = "{displayTemperature}";
+        const formatMaxLength = {
+            gpu: 0,
+            temp: 0,
+        };
         for (const gpu of info.cards) {
-            //console.log(gpu)
-            const bar = new SingleBar({
-                format: `GPU ${gpu.index} [{bar}] {percentage}% | {used} used / {free} free`,
-                barCompleteChar: '=',
-                barIncompleteChar: '.',
-                hideCursor: true,
-            });
-            bar.start(gpu.totalMemoryBytes, gpu.usedMemoryBytes, {
-                free: formatFileSize(gpu.totalMemoryBytes - gpu.usedMemoryBytes),
-                used: formatFileSize(gpu.usedMemoryBytes),
-                gpuIndex: gpu.index,
-            });
-            bar.stop()
+            //console.log(gpu)            
+            const usedMemoryPercent = (gpu.memory.usedMemoryBytes / gpu.memory.totalMemoryBytes) * 100;
+            const dum = formatFileSize(gpu.memory.totalMemoryBytes - gpu.memory.usedMemoryBytes);
+            const duf = formatFileSize(gpu.memory.usedMemoryBytes);
+            const dg = displayGpu.replace("{displayUsedMemory}", duf)
+                .replace("{displayFreeMemory}", dum);
+            const dt = `${gpu.temperature}°C`;
+            const dtf = gpu.temperature < 30 ? dt : color.bold(`${gpu.temperature}°C`);
+            const tl = displayTemp.replace("{displayTemperature}", dt);
+            if (dg.length > formatMaxLength.gpu) {
+                formatMaxLength.gpu = dg.length;
+            }
+            if (tl.length > formatMaxLength.temp) {
+                formatMaxLength.temp = tl.length;
+            }
+            const info: CardBarInfo = {
+                displayBar: displayBar,
+                displayMemory: dg,
+                totalMemory: gpu.memory.totalMemoryBytes,
+                usedMemory: gpu.memory.usedMemoryBytes,
+                index: gpu.index,
+                usedMemoryPercent: usedMemoryPercent,
+                powerDraw: gpu.powerDraw,
+                powerLimit: gpu.powerLimit,
+                powerPercent: parseInt(((gpu.powerDraw / gpu.powerLimit) * 100).toString()),
+                powerDrawPercent: parseInt(((gpu.powerDraw / gpu.powerLimit) * 100).toString()),
+                displayTemperature: dtf,
+            };
+            barData.push(info);
+        };
+        const format = new Array<string>(displayBar, displayMemory, displayTemp, displayWatt);
+        const multibar = new MultiBar({
+            autopadding: true,
+            barCompleteChar: '=',
+            barIncompleteChar: '.',
+            hideCursor: true,
+            format: format.join(" | "),
+        });
+        let i = 0;
+        for (const _ of info.cards) {
+            const data = barData[i];
+            if (formatMaxLength.gpu > data.displayMemory.length) {
+                data.displayMemory = data.displayMemory.padEnd(formatMaxLength.gpu, " ");
+            }
+            if (displayTemp.length > data.displayTemperature.length) {
+                data.displayTemperature = data.displayTemperature.padEnd(formatMaxLength.temp, " ");
+            }
+            multibar.create(data.totalMemory, data.usedMemory, data);
+            ++i
         }
+        multibar.stop();
     }
 }
 
@@ -51,12 +108,18 @@ function ramStats(hasGpu: boolean) {
 }
 
 function memTotalStats(info: {
-    cards: GPUCard[];
+    cards: GPUCardInfo[];
     totalMemory: TotalMemoryInfo;
 }) {
-    //console.log("MTS", info)
+    let totalPowerDraw = 0;
+    let totalPowerLimit = 0;
+    for (const card of info.cards) {
+        totalPowerDraw += card.powerDraw;
+        totalPowerLimit += card.powerLimit;
+    }
+    const totalPowerPercentage = Math.round(totalPowerDraw / totalPowerLimit * 100);
     const bar = new SingleBar({
-        format: `GPU [{bar}] ${color.bold("{percentage}%")} | ${color.yellowBright("{used}")} used / ${color.greenBright("{free}")} free`,
+        format: `GPU [{bar}] ${color.bold("{percentage}%")} | ${color.yellowBright("{used}")} used / ${color.greenBright("{free}")} free | {totalPowerDraw}W ${color.dim("{totalPowerPercentage}%")}`,
         barCompleteChar: "=",
         barIncompleteChar: '.',
         hideCursor: true
@@ -65,6 +128,8 @@ function memTotalStats(info: {
     bar.start(info.totalMemory.totalMemoryBytes, info.totalMemory.usedMemoryBytes, {
         free: formatFileSize(info.totalMemory.totalMemoryBytes - info.totalMemory.usedMemoryBytes),
         used: formatFileSize(info.totalMemory.usedMemoryBytes),
+        totalPowerDraw: totalPowerDraw,
+        totalPowerPercentage: totalPowerPercentage,
     });
     bar.stop()
 }

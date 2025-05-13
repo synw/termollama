@@ -1,6 +1,15 @@
-interface GPUCard extends TotalMemoryInfo {
+
+interface GPUCardInfo {
     index: number;
-    name: string;
+    powerDraw: number;
+    powerLimit: number;
+    temperature: number;
+    memory: TotalMemoryInfo;
+}
+
+interface GPUInfo {
+    totalMemory: TotalMemoryInfo;
+    cards: Array<GPUCardInfo>;
 }
 
 interface TotalMemoryInfo {
@@ -87,11 +96,6 @@ interface ServeOptions {
     registry?: string;
 }
 
-interface ParsedOptions {
-    flags: string[];
-    [key: string]: number | string[]; // Allow both numbers and the 'flags' array
-}
-
 interface KeyPress {
     sequence: string;
     name: string;
@@ -103,10 +107,8 @@ interface KeyPress {
 type CmdName = "env" | "load" | "unload" | "mem" | "search" | "keepAlive" | "models" | "ctx" | "default";
 
 export {
-    GPUCard,
     TotalMemoryInfo,
     EnvVars,
-    ParsedOptions,
     ModelData,
     CmdName,
     KeyPress,
@@ -116,4 +118,6 @@ export {
     OllamaModelFamilly,
     OllamaRegistry,
     ModelInfo,
+    GPUCardInfo,
+    GPUInfo,
 }

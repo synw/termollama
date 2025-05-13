@@ -1,42 +1,53 @@
-import { GPUCard, TotalMemoryInfo } from '../interfaces.js';
-import { gpus } from '../state.js';
+import { GPUCardInfo, GPUInfo, TotalMemoryInfo } from '../interfaces.js';
 import { execute } from './execute.js';
 
-async function getGPUInfo(): Promise<Array<string>> {
-    let gpuInfo: Array<string> = [];
+async function getGPUCardsInfo(): Promise<{ hasGPU: boolean, cards: Array<GPUCardInfo> }> {
     // Execute nvidia-smi command to get memory usage and total memory information
-    //gpuInfo = execSync('nvidia-smix --query-gpu=index,name,memory.total,memory.used --format=csv,noheader,nounits')
-    const res = await execute("nvidia-smi", ["--query-gpu=index,name,memory.total,memory.used", "--format=csv,noheader,nounits"],
-        { onError: () => null }
+    let hasSmiCommand = true;
+    const res = await execute("nvidia-smi", ["--query-gpu=index,memory.total,memory.used,power.draw,power.limit,temperature.gpu", "--format=csv,noheader,nounits"],
+        { onError: () => hasSmiCommand = false }
     );
-    //console.log("res", res);
-    gpuInfo = res.trim().split('\n');
-    const final = new Array<string>();
-    gpuInfo.forEach((gpu) => {
-        if (gpu !== "") {
-            final.push(gpu)
+    if (!hasSmiCommand) {
+        return { hasGPU: false, cards: {} as Array<GPUCardInfo> }
+    }
+    const t = res.trim().split('\n');
+    //console.log("t", t);
+    const gpus = new Array<Array<number>>();
+    t.forEach(row => {
+        //console.log("row", row);
+        if (row.length > 0) {
+            gpus.push(row.split(', ').map(value => parseFloat(value.trim())))
         }
     });
-    //console.log("GPU INFO", gpuInfo);
-    return final
+    //console.log("pinfo", gpus);
+    const cards = new Array<GPUCardInfo>();
+    gpus.forEach(row => {
+        const totalMemoryBytes = Math.round(Number(row[1]) * 1048576);
+        const usedMemoryBytes = Math.round(Number(row[2]) * 1048576);
+        const totalMemory: TotalMemoryInfo = {
+            totalMemoryBytes: totalMemoryBytes,
+            usedMemoryBytes: usedMemoryBytes,
+            usagePercentage: parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(1))
+        }
+        const card: GPUCardInfo = {
+            index: row[0],
+            memory: totalMemory,
+            powerDraw: parseInt(Math.round(row[3]).toString()),
+            powerLimit: row[4],
+            temperature: row[5],
+        };
+        cards.push(card);
+    });
+    return { hasGPU: true, cards: cards }
 }
-
-async function systemHasGpu(): Promise<boolean> {
-    const gpuInfo = await getGPUInfo();
-    return gpuInfo[0] !== ""
-}
-
 async function getTotalGPUMem(): Promise<number> {
-    const gpuInfo = await getGPUInfo();
-    if (gpuInfo[0] == "") {
+    const { hasGPU, cards } = await getGPUCardsInfo();
+    if (!hasGPU) {
         return 0
     }
-    // Process each GPU's information
     let totalMemoryBytes = 0;
-    gpuInfo.map(gpu => {
-        const [index, name, memoryTotalMiB, memoryUsedMiB] = gpu.split(',');
-        const memoryTotalBytesCard = Math.round(Number(memoryTotalMiB) * 1048576);
-        totalMemoryBytes += memoryTotalBytesCard
+    cards.map(c => {
+        totalMemoryBytes += c.memory.totalMemoryBytes;
     });
     return totalMemoryBytes
 }
@@ -50,71 +61,28 @@ function getGPUOccupationPercent(totalGPUMem: number, memOccupation: number): nu
  * Gets current and total memory capacity for all NVIDIA GPUs in GB
  * @returns {Object} Object containing array of GPU information and total memory details
  */
-async function getGPUMemoryInfo(): Promise<{ cards: GPUCard[], totalMemory: TotalMemoryInfo }> {
-    const gpuInfo = await getGPUInfo();
-    //console.log("GPU info", gpuInfo);
-    if (gpuInfo[0] == "") {
-        return { cards: [], totalMemory: {} as TotalMemoryInfo }
+async function getGPUMemoryInfo(): Promise<{ hasGPU: boolean, info: GPUInfo }> {
+    const { hasGPU, cards } = await getGPUCardsInfo();
+    //console.log("cards", cards);
+    if (!hasGPU) {
+        return { hasGPU: false, info: {} as GPUInfo };
     }
-    // Process each GPU's information
     let totalMemoryBytes = 0;
     let usedMemoryBytes = 0;
-
-    const hasGpusConf = gpus.length > 0;
-    //console.log("GPU info", gpuInfo);
-    const cards = gpuInfo.map(gpu => {
-        const [index, name, memoryTotalMiB, memoryUsedMiB] = gpu.split(',');
-        //console.log("Info", index, name, memoryTotalMiB, memoryUsedMiB);
-        const memoryTotalBytesCard = Math.round(Number(memoryTotalMiB) * 1048576);
-        const memoryUsedBytesCard = Math.round(Number(memoryUsedMiB) * 1048576);
-
-        //const memoryTotalGBCard = Number(memoryTotalMiB) / 1024;
-        //const memoryUsedGBCard = Number(memoryUsedMiB) / 1024;
-
-        const idx = Number(index);
-        if (hasGpusConf) {
-            if (gpus.includes(idx)) {
-                totalMemoryBytes += memoryTotalBytesCard;
-                usedMemoryBytes += memoryUsedBytesCard;
-            }
-        } else {
-            totalMemoryBytes += memoryTotalBytesCard;
-            usedMemoryBytes += memoryUsedBytesCard;
-        }
-
-        return {
-            index: idx,
-            name,
-            totalMemoryBytes: memoryTotalBytesCard,
-            usedMemoryBytes: memoryUsedBytesCard,
-            usagePercentage: parseFloat(((memoryUsedBytesCard / memoryTotalBytesCard) * 100).toFixed(1))
-        };
+    cards.forEach(c => {
+        totalMemoryBytes += c.memory.totalMemoryBytes;
+        usedMemoryBytes += c.memory.usedMemoryBytes;
     });
-
     const totalUsagePercentage = (usedMemoryBytes / totalMemoryBytes) * 100;
-
-    const nc = new Array<GPUCard>();
-    if (gpus.length > 0) {
-        let i = 0;
-        cards.forEach((c) => {
-            if (gpus.includes(c.index)) {
-                nc.push(c)
-            }
-            ++i;
-
-        })
-    } else {
-        nc.push(...cards)
-    }
-
-    return {
-        cards: nc,
+    const info: GPUInfo = {
         totalMemory: {
             totalMemoryBytes: totalMemoryBytes,
             usedMemoryBytes: usedMemoryBytes,
             usagePercentage: parseFloat(totalUsagePercentage.toFixed(1))
-        }
-    };
+        },
+        cards: cards,
+    }
+    return { hasGPU: true, info: info }
 }
 
 
@@ -122,5 +90,4 @@ export {
     getGPUMemoryInfo,
     getGPUOccupationPercent,
     getTotalGPUMem,
-    systemHasGpu,
 }

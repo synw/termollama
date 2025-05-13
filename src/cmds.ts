@@ -57,21 +57,19 @@ function initCommands(program: Command) {
     const statsCmd = program.command("default", { isDefault: true })
         .description("show gpu usage statistics")
         .action(async (options) => {
-            const info = await getGPUMemoryInfo();
-            const nCards = info.cards.length;
-            const hasGpu = nCards > 0;
-            //console.log("hasGpu", hasGpu, info);
+            const { hasGPU, info } = await getGPUMemoryInfo();
+            //console.log("hasGpu", hasGPU, info);
             if (info.cards.length > 1) {
                 memStats(info);
             }
             const hasOffload = await ps(false);
             //console.log("has Gpu", hasGpu);
             //console.log("has offload", hasOffload);
-            if (hasGpu) {
+            if (hasGPU) {
                 memTotalStats(info);
             }
-            if (!hasGpu || hasOffload) {
-                ramStats(hasGpu);
+            if (!hasGPU || hasOffload) {
+                ramStats(hasGPU);
             }
             await processAction(options);
         });

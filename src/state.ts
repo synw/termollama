@@ -1,7 +1,6 @@
 import { Ollama } from 'ollama';
 
 let ollama: Ollama;
-let gpus = new Array<number>();
 
 function initState(addr: string = "localhost:11434", https = false) {
     const h = `${https ? 'https' : 'http'}://${addr}`;
@@ -12,5 +11,4 @@ function initState(addr: string = "localhost:11434", https = false) {
 export {
     initState,
     ollama,
-    gpus,
 }

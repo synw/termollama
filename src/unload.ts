@@ -2,7 +2,7 @@ import { checkbox } from '@inquirer/prompts';
 import { ListResponse } from 'ollama';
 import ora from 'ora';
 import { execute } from "./lib/execute.js";
-import { getGPUMemoryInfo, systemHasGpu } from './lib/gpu.js';
+import { getGPUMemoryInfo } from './lib/gpu.js';
 import { memTotalStats, modelsMemChart } from './lib/stats.js';
 import { ollamaPs } from './ps.js';
 
@@ -28,11 +28,8 @@ async function unload(rml: ListResponse) {
         //console.log(`Unloaded ${answer.length} model${answer.length > 1 ? 's' : ''}`);
         await new Promise(resolve => setTimeout(resolve, 350));
         modelsMemChart(await ollamaPs());
-        const hasGpu = await systemHasGpu();
-        //sconsole.log("has gpu", hasGpu);
-        if (hasGpu) {
-            const info = await getGPUMemoryInfo();
-            //console.log("I3", info);
+        const { hasGPU, info } = await getGPUMemoryInfo();
+        if (hasGPU) {
             memTotalStats(info)
         }
     } else {
