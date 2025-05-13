@@ -2,11 +2,12 @@
 
 [![pub package](https://img.shields.io/npm/v/termollama)](https://www.npmjs.com/package/termollama)
 
-A Linux command line utility for Ollama. Features:
+A Linux command line utility for Ollama. By default it displays info about gpu vram usage, and
+has these additional features:
 
-- Quick gpu vram usage stats
-- Memory management: load and unload models
-- A serve command with options
+- **Memory management**: load and unload models with different parameters
+- **Serve command**: with flag options
+- **Gguf utilities**: extract gguf files from the Ollama model blobs
 
 ## Install
 
@@ -199,7 +200,7 @@ and a max of 4 models can be loaded at the same times
 olm s -p 11385 -r ~/some/path/ollama_models
 ```
 
-Run on localhost:11385 with a custom models registry directory
+Run on localhost:11385 with a custom models registry directory: use an empty directory to create a new registry
 
 ## Information about gguf files
 
@@ -253,6 +254,8 @@ Model qwen3:0.6b found in registry registry.ollama.ai
   link: ln -s /home/me/.ollama/blobs/sha256-7f4030143c1c477224c5434f8272c662a8b042079a0a584f0a27a1684fe2e1fx qwen3_0.6b_Q4_K_M.gguf
 ```
 
+The link can be used to create a regular gguf file name symlink from the blob, and use it with [Llamacpp](https://github.com/ggml-org/llama.cpp) and friends.
+
 ### Show template info
 
 To show a model's template:
@@ -260,3 +263,23 @@ To show a model's template:
 ```bash
 olm gguf -t qwen3:0.6b
 ```
+
+### Exfiltrate Model Blob
+
+To exfiltrate a model blob to a gguf file:
+
+```bash
+olm gguf -x qwen3:0.6b /path/to/destination
+```
+
+This command will copy the model data from its original location to the specified destination, rename it to a `.gguf` file, and replace the original blob with a symlink pointing to the new file. Use case: to move the model to another storage location
+
+### Copy Model Blob
+
+To only copy a model blob without replacing the original:
+
+```bash
+olm gguf -c qwen3:0.6b /path/to/destination
+```
+
+This command will perform the same steps as the exfiltrate command but will not replace the original blob with a symlink.

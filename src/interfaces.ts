@@ -56,6 +56,7 @@ interface ModelInfo {
     familly: string;
     confName: string;
     name: string;
+    ggufName: string;
     confPath: string;
     blobPath: string;
     template: string;

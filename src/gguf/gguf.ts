@@ -1,7 +1,8 @@
 import { runtimeParamError } from "../user_msgs.js";
 import { ModelInfo, OllamaRegistry } from "../interfaces.js";
-import { displayModel, displayRegistries, displayRegistryModels, displayTemplate } from "./display.js";
+import { displayModel, displayRegistries, displayTemplate } from "./display.js";
 import { detectConfPath, detectRegistries, readModelInfo, readRegistries } from "./utils.js";
+import { exfiltrate } from "./exfiltrate.js";
 
 
 let registriesData: Record<string, OllamaRegistry> = {};
@@ -20,7 +21,7 @@ function _searchModel(query: Array<string>): { found: boolean, info: ModelInfo }
 }
 
 async function gguf(options: Record<string, any>) {
-    ollamaModelsDir = detectConfPath();
+    ollamaModelsDir = options?.registry ? options.registry : detectConfPath();
     const registriesPaths = detectRegistries(ollamaModelsDir);
     //console.log("REG", registriesPaths);
     registriesData = readRegistries(registriesPaths);
@@ -40,6 +41,22 @@ async function gguf(options: Record<string, any>) {
             return
         }
         displayTemplate(info);
+        return
+    } else if (options.exfiltrate || options.copy) {
+        const isCopy = "copy" in options;
+        const opt = options?.exfiltrate ? options.exfiltrate : options.copy;
+        const xf = opt as Array<string>;
+        if (xf.length < 2) {
+            runtimeParamError("Provide a model name and a destination path: ex: olm -x qwen3:32b /path/to/destination");
+            return
+        }
+        const destination = xf.pop()!;
+        const { found, info } = _searchModel(xf)
+        if (!found) {
+            console.warn("Model not found for", options.template);
+            return
+        }
+        exfiltrate(info, destination, isCopy);
         return
     }
     // default command

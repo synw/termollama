@@ -98,17 +98,21 @@ function readModelInfo(
     const template = readTextFile(path.join(blobs, templateFileName));
     const params = readTextFile(path.join(blobs, paramsFileName));
     const blob = path.join(blobs, modelFileName);
+    const quant = mconf.file_type;
+    const q = model.registry == "registry.ollama.ai" ? "_" + quant : "";
+    const ggufName = model.familly + "_" + model.name + q + ".gguf";
     const modelInfo: ModelInfo = {
         registry: model.registry,
         familly: model.familly,
         confName: model.name,
         name: model.familly + ":" + model.name,
+        ggufName: ggufName,
         confPath: model.path,
         blobPath: blob,
         template: template,
         params: params,
         size: modelSize,
-        quant: mconf.file_type,
+        quant: quant,
     }
     return { found: true, info: modelInfo }
 }
@@ -175,6 +179,7 @@ function detectRegistries(ollamaModelsDir: string): Record<string, string> {
 
 function detectConfPath(): string {
     let ollamaModelsDir = "";
+    //console.log("Models dir env:", process.env["OLLAMA_MODELS"]);
     if (process.env["OLLAMA_MODELS"]) {
         return path.join(process.env["OLLAMA_MODELS"])
     }

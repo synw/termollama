@@ -25,9 +25,7 @@ function displayModel(model: ModelInfo) {
     console.log(" ", color.dim("size:"), formatFileSize(model.size));
     console.log(" ", color.dim("quant:"), model.quant);
     console.log(" ", color.dim("blob:"), model.blobPath);
-    const q = model.registry == "registry.ollama.ai" ? "_" + model.quant : "";
-    const name = model.familly + "_" + model.confName + q + ".gguf";
-    const link = `ln -s ${model.blobPath} ${name}`;
+    const link = `ln -s ${model.blobPath} ${model.ggufName}`;
     console.log(" ", color.dim("link:"), link);
 }
 
