@@ -48,8 +48,13 @@ const ggufOptions: Array<Option> = [
     new Option("-r, --registry <path>", "use a model registry directory"),
 ];
 
+const baseOptions: Array<Option> = [
+    new Option("-w, --watch", "enable watch mode for real time info. Default: false"),
+]
+
 export {
     stateOptions,
     serveOptions,
     ggufOptions,
+    baseOptions,
 }

@@ -1,10 +1,10 @@
 import { checkbox, input } from '@inquirer/prompts';
-import { ListResponse } from 'ollama';
-import { ps } from './ps.js';
+import { ModelResponse } from 'ollama';
+import { ps } from './lib/ps.js';
 import { ollama } from './state.js';
 
-async function keepAlive(rml: ListResponse) {
-    const runningModels = rml.models.map(m => m.model);
+async function keepAlive(models: Array<ModelResponse>) {
+    const runningModels = models.map(m => m.model);
     const choices: Array<{ name: string, value: string }> = [];
     runningModels.forEach((m) => {
         choices.push({
@@ -26,7 +26,7 @@ async function keepAlive(rml: ListResponse) {
         }
         //console.log(`Unloaded ${answer.length} model${answer.length > 1 ? 's' : ''}`);
         await new Promise(resolve => setTimeout(resolve, 250));
-        await ps(false);
+        await ps();
     } else {
         console.log("No models selected")
     }

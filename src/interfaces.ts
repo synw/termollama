@@ -1,17 +1,3 @@
-
-interface GPUCardInfo {
-    index: number;
-    powerDraw: number;
-    powerLimit: number;
-    temperature: number;
-    memory: TotalMemoryInfo;
-}
-
-interface GPUInfo {
-    totalMemory: TotalMemoryInfo;
-    cards: Array<GPUCardInfo>;
-}
-
 interface TotalMemoryInfo {
     totalMemoryBytes: number;
     usedMemoryBytes: number;
@@ -104,6 +90,44 @@ interface KeyPress {
     shift: boolean;
 }
 
+interface GPUCardInfo {
+    index: number;
+    powerDraw: number;
+    powerLimit: number;
+    temperature: number;
+    memory: TotalMemoryInfo;
+}
+
+interface GPUInfo {
+    totalMemory: TotalMemoryInfo;
+    cards: Array<GPUCardInfo>;
+}
+
+interface CardBarInfo {
+    index: number;
+    totalMemory: number;
+    usedMemory: number;
+    freeMemory: number;
+    usedMemoryPercent: number;
+    powerDraw: number;
+    powerPercent: string;
+    powerLimit: number;
+    temperature: number;
+    displayFreeMem: string;
+    displayUsedMem: string;
+    displayMem: string;
+    displayTemperature: string;
+    displayPowerDraw: string;
+    displayIndex: string;
+    formatMaxLength: {
+        gpuFree: number,
+        gpuUsed: number,
+        gpuFinal: number,
+        temp: number,
+        power: number,
+    };
+}
+
 type CmdName = "env" | "load" | "unload" | "mem" | "search" | "keepAlive" | "models" | "ctx" | "default";
 
 export {
@@ -120,4 +144,5 @@ export {
     ModelInfo,
     GPUCardInfo,
     GPUInfo,
+    CardBarInfo,
 }

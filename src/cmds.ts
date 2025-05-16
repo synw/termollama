@@ -1,18 +1,17 @@
 import { Command } from "@commander-js/extra-typings";
-import { actionBar } from "./actionbar.js";
 import { setCtx } from "./ctx.js";
 import { confEnv } from "./env.js";
-import { ServeOptions, StateOptions } from "./interfaces.js";
+import { gguf } from "./gguf/gguf.js";
+import { ServeOptions } from "./interfaces.js";
 import { keepAlive } from "./keepalive.js";
-import { getGPUMemoryInfo } from "./lib/gpu.js";
-import { memStats, memTotalStats, modelsMemChart, ramStats } from "./lib/stats.js";
+import { ollamaPsOrQuit } from "./lib/ps.js";
+import { modelsMemChart } from "./lib/models.js";
 import { load } from "./load.js";
+import { mainCmd } from "./maincmd.js";
 import { models } from "./models.js";
-import { ggufOptions, serveOptions, stateOptions } from "./options.js";
-import { ollamaPsOrQuit, ps } from "./ps.js";
+import { baseOptions, ggufOptions, serveOptions, stateOptions } from "./options.js";
 import { serve } from "./serve.js";
 import { unload } from "./unload.js";
-import { gguf } from "./gguf/gguf.js";
 
 function initCommands(program: Command) {
     const serveCmd = program.command("serve")
@@ -28,20 +27,10 @@ function initCommands(program: Command) {
         .description("show a chart of gpu memory used by models")
         .action(async (options) => modelsMemChart(await ollamaPsOrQuit()));;
     stateOptions.forEach(o => memCmd.addOption(o));
-    const modelsCmd = program.command("models").alias("m")
-        .description("show a list of models, optional keyword filters")
-        .argument("[filters...]", "filter model names: ex 'olm -m qwen mistral'")
-        .action(async (filters) => await models(filters));
-    stateOptions.forEach(o => modelsCmd.addOption(o));
     const ctxCmd = program.command("ctx").alias("c")
         .description("set context length for a model loaded in memory")
         .action(async (options) => await setCtx(await ollamaPsOrQuit()));
     stateOptions.forEach(o => ctxCmd.addOption(o));
-    const loadCmd = program.command("load").alias("l")
-        .description("load a model in memory, optional keywords filters")
-        .argument("[filters...]", "filter model names: ex 'olm -m qwen mistral'")
-        .action(async (filters) => await load(filters));
-    stateOptions.forEach(o => loadCmd.addOption(o));
     const unloadCmd = program.command("unload").alias("u")
         .description("unload a model from memory")
         .action(async (options) => await unload(await ollamaPsOrQuit()));
@@ -50,54 +39,25 @@ function initCommands(program: Command) {
         .description("set the keep alive value for a model")
         .action(async (options) => await keepAlive(await ollamaPsOrQuit()));
     stateOptions.forEach(o => keepAliveCmd.addOption(o));
+    const modelsCmd = program.command("models").alias("m")
+        .description("show a list of models, optional keyword filters")
+        .argument("[filters...]", "filter model names: ex 'olm -m qwen mistral'")
+        .action(async (filters) => await models(filters));
+    stateOptions.forEach(o => modelsCmd.addOption(o));
+    const loadCmd = program.command("load").alias("l")
+        .description("load a model in memory, optional keywords filters")
+        .argument("[filters...]", "filter model names: ex 'olm -m qwen mistral'")
+        .action(async (filters) => await load(filters));
+    stateOptions.forEach(o => loadCmd.addOption(o));
     const ggufCmd = program.command("gguf").alias("g")
         .description("provides gguf files info")
         .action(async (options) => await gguf(options));
     ggufOptions.forEach(o => ggufCmd.addOption(o));
     const statsCmd = program.command("default", { isDefault: true })
         .description("show gpu usage statistics")
-        .action(async (options) => {
-            const { hasGPU, info } = await getGPUMemoryInfo();
-            //console.log("hasGpu", hasGPU, info);
-            if (info.cards.length > 1) {
-                memStats(info);
-            }
-            const hasOffload = await ps(false);
-            //console.log("has Gpu", hasGpu);
-            //console.log("has offload", hasOffload);
-            if (hasGPU) {
-                memTotalStats(info);
-            }
-            if (!hasGPU || hasOffload) {
-                ramStats(hasGPU);
-            }
-            await processAction(options);
-        });
+        .action(async (options) => await mainCmd(options));
     stateOptions.forEach(o => statsCmd.addOption(o));
-}
-
-async function processAction(options: StateOptions) {
-    const k = await actionBar();
-    switch (k) {
-        case "l":
-            await load([]);
-            break;
-        case "k":
-            await keepAlive(await ollamaPsOrQuit());
-            break;
-        case "u":
-            await unload(await ollamaPsOrQuit());
-            break
-        case "c":
-            await setCtx(await ollamaPsOrQuit());
-            break
-        case "m":
-            modelsMemChart(await ollamaPsOrQuit());
-            await processAction(options);
-            break
-        default:
-            process.exit(0)
-    }
+    baseOptions.forEach(o => statsCmd.addOption(o));
 }
 
 export {
