@@ -56,7 +56,7 @@ interface ModelInfo {
     confPath: string;
     blobPath: string;
     template: string;
-    params: string;
+    params: string | null;
     size: number;
     quant: string;
 }

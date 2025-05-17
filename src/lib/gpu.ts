@@ -1,16 +1,20 @@
+import { spawnSync } from 'node:child_process';
 import { GPUCardInfo, GPUInfo, TotalMemoryInfo } from '../interfaces.js';
-import { execute } from './execute.js';
 
-async function getGPUCardsInfo(): Promise<{ ok: boolean, hasGPU: boolean, cards: Array<GPUCardInfo> }> {
+function getGPUCardsInfo(): { ok: boolean, hasGPU: boolean, cards: Array<GPUCardInfo> } {
     // Execute nvidia-smi command to get memory usage and total memory information
-    let hasSmiCommand = true;
-    const res = await execute("nvidia-smi", ["--query-gpu=index,memory.total,memory.used,power.draw,power.limit,temperature.gpu", "--format=csv,noheader,nounits"],
-        { onError: () => hasSmiCommand = false }
-    );
-    if (!hasSmiCommand) {
+    const cmdRes = spawnSync("nvidia-smi", [
+        "--query-gpu=index,memory.total,memory.used,power.draw,power.limit,temperature.gpu",
+        "--format=csv,noheader,nounits"
+    ], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'inherit'] // stdin, stdout, stderr
+    });
+    //console.log("CRES", cmdRes)
+    if (cmdRes.error || cmdRes.output == null) {
         return { ok: false, hasGPU: false, cards: [] };
     }
-    const t = res.trim().split('\n');
+    const t = cmdRes.stdout.split("\n");
     const gpus = new Array<Array<number>>();
     for (const row of t) {
         if (row.length > 0) {
@@ -94,8 +98,8 @@ function getGPUOccupationPercent(totalGPUMem: number, memOccupation: number): nu
  * Gets current and total memory capacity for all NVIDIA GPUs in GB
  * @returns {Object} Object containing array of GPU information and total memory details
  */
-async function getGPUMemoryInfo(): Promise<{ hasGPU: boolean, info: GPUInfo, success: boolean }> {
-    const { hasGPU, cards, ok } = await getGPUCardsInfo();
+function getGPUMemoryInfo(): { hasGPU: boolean, info: GPUInfo, success: boolean } {
+    const { hasGPU, cards, ok } = getGPUCardsInfo();
     if (!ok) {
         return { hasGPU: hasGPU, info: {} as GPUInfo, success: false };
     }

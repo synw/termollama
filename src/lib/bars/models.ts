@@ -21,9 +21,9 @@ const modelBarOptions: Options = {
 
 function formatModelData(modelData: ExtendedModelData): string {
     const buf = new Array<string>();
+    buf.push(color.bold(modelData.name));
     buf.push(modelData.size);
-    buf.push(color.yellow(modelData.name));
-    buf.push(modelData.expire);
+    buf.push(color.dim(modelData.expire));
     return buf.join(" ")
 }
 

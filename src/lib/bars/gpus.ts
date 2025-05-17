@@ -37,12 +37,22 @@ function calcSectionsLengthAndFormat(
     const formatedGpuFree = tagMemFree.replace(`{displayFreeMem}`, formatFileSize(freeMem));
     const formatedGpuUsed = tagMemUsed.replace(`{displayUsedMem}`, formatFileSize(data.usedMemory));
     const dt = `${data.temperature}°C`;
-    const dtf = data.temperature < 30 ? color.green(dt) : color.bold(`${data.temperature}°C`);
+    let dtf: string;
+    if (data.temperature < 30) {
+        dtf = color.green(dt)
+    } else if (data.temperature < 50) {
+        dtf = color.greenBright(dt)
+    } else if (data.temperature < 70) {
+        dtf = color.yellowBright(dt)
+    } else {
+        dtf = color.redBright(dt)
+    }
+    //const dtf = data.temperature < 30 ? color.green(dt) : color.greenBright(dt);
     const formatedTemp = tagTemp.replace("{displayTemperature}", dtf);
     const formatedPower = tagPower.replace("{displayPowerDraw}W", data.powerDraw.toString());
     let formatedMemFinal: string
     if (colorizeMem) {
-        formatedMemFinal = color.yellowBright(formatedGpuUsed) + color.greenBright(` ${formatedGpuFree} free`);
+        formatedMemFinal = color.yellowBright(formatedGpuUsed) + " " + color.greenBright(`${formatedGpuFree} free`);
     } else {
         formatedMemFinal = formatedGpuUsed + color.dim(` ${formatedGpuFree} free`);
     }
@@ -66,8 +76,8 @@ function calcSectionsLengthAndFormat(
     return data
 }
 
-async function _updateInfo(): Promise<Array<CardBarInfo>> {
-    const { info, success } = await getGPUMemoryInfo();
+function _updateInfo(): Array<CardBarInfo> {
+    const { info, success } = getGPUMemoryInfo();
     if (!success) {
         // skip this cycle
         return []
@@ -143,7 +153,7 @@ async function _updateInfo(): Promise<Array<CardBarInfo>> {
     return barData;
 }
 
-async function gpuDetailsStats(
+function gpuDetailsStats(
     info: GPUInfo,
     models: Array<ExtendedModelData>,
     realTime: boolean,
@@ -151,7 +161,7 @@ async function gpuDetailsStats(
 ) {
     //console.log("GTS", info)
     if (info.cards.length == 0) { return }
-    const barData = await _updateInfo()
+    const barData = _updateInfo()
     const multibar = new MultiBar({
         autopadding: true,
         barCompleteChar: '=',
@@ -159,6 +169,7 @@ async function gpuDetailsStats(
         clearOnComplete: realTime,
         hideCursor: true,
         format: tagFormat,
+        gracefulExit: true,
     });
     let i = 0;
     //console.log("INFO", info);
@@ -170,6 +181,20 @@ async function gpuDetailsStats(
         bars.push(multibar.create(data.totalMemory, data.usedMemory, data));
         ++i
     }
+    if (!realTime) {
+        // models
+        const modelBars = new Array<SingleBar>();
+        models.forEach(m => {
+            /*console.log(info.totalMemory.totalMemoryBytes, m.raw_size_vram)
+            console.log(info.totalMemory.totalMemoryBytes - m.raw_size_vram)
+            console.log("M", m);*/
+            const md = formatModelData(m);
+            modelBars.push(multibar.create(info.totalMemory.totalMemoryBytes, m.raw_size_vram,
+                { output: md },
+                modelBarOptions
+            ))
+        });
+    }
     // total
     const tdata = padCardInfo(barData[3]);
     if (displayTotal) {
@@ -180,18 +205,7 @@ async function gpuDetailsStats(
         );
         bars.push(totalBar);
     }
-    // models
-    const modelBars = new Array<SingleBar>();
-    models.forEach(m => {
-        /*console.log(info.totalMemory.totalMemoryBytes, m.raw_size_vram)
-        console.log(info.totalMemory.totalMemoryBytes - m.raw_size_vram)
-        console.log("M", m);*/
-        const md = formatModelData(m);
-        modelBars.push(multibar.create(info.totalMemory.totalMemoryBytes, m.raw_size_vram,
-            { output: md },
-            modelBarOptions
-        ))
-    });
+
     //multibar.log("Start bar\n")
     if (!realTime) {
         multibar.stop();
@@ -199,18 +213,25 @@ async function gpuDetailsStats(
     }
     // real time
     let b = 0;
-    setInterval(async () => {
-        const barData = await _updateInfo();
+    setInterval(() => {
+        let nbarData: Array<CardBarInfo>;
+        try {
+            nbarData = _updateInfo();
+        } catch (e) {
+            multibar.stop()
+            throw new Error(`bar info err: ${e}`)
+        }
+
         //console.log("BL", barData.length);
-        if (barData.length == 0) {
+        if (nbarData.length == 0) {
             // unsuccessful gpu info data fetch, skipping this cycle
             return
         }
         let i = 0;
         bars.forEach(b => {
             //console.log("BL", i, barData.length);
-            const data = padCardInfo(barData[i]);
-            b.update(barData[i].usedMemory, data);
+            const data = padCardInfo(nbarData[i]);
+            b.update(nbarData[i].usedMemory, data);
             ++i
         });
         ++b
