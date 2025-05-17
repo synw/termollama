@@ -1,25 +1,32 @@
-import { ExtendedModelData } from './interfaces.js';
-import { getGPUMemoryInfo, getGPUOccupationPercent, getTotalGPUMem } from './lib/gpu.js';
-import { memTotalStats } from './lib/stats.js';
-import { formatFileSize, getTimeHumanizedUntil } from './lib/utils.js';
-import { ListResponse } from 'ollama';
+import { ModelResponse } from 'ollama';
+import { ExtendedModelData } from '../interfaces.js';
+import { getGPUOccupationPercent, getTotalGPUMem } from "./gpu.js";
+import { formatFileSize, getTimeHumanizedUntil } from './utils.js';
 // @ts-ignore
 import TCharts from "tcharts.js";
-import { ollama } from './state.js';
+import { ollama } from '../state.js';
 
 
-async function ps(showGpuInfo = true): Promise<boolean> {
-    const ps = await ollamaPs();
-    let data = ps.models;
-    //console.log(data);
+async function ps(display = false): Promise<{
+    hasOffload:
+    boolean, isRunning: boolean,
+    hasLoadedModels: boolean,
+    models: Array<ExtendedModelData>,
+}> {
+    const _ps = await ollamaPs();
+    if (!_ps.isRunning) {
+        return { isRunning: false, hasOffload: false, hasLoadedModels: false, models: [] }
+    }
+    let data = _ps.models;
     if (data.length == 0) {
-        return false
+        return { isRunning: true, hasOffload: false, hasLoadedModels: false, models: [] }
     }
     const totalGpuMem = await getTotalGPUMem();
     const hasGpu = totalGpuMem > 0;
     const choices: Array<{ name: string, value: string }> = [];
     const models = new Array<ExtendedModelData>();
     let hasOffload = false;
+    //console.log("PS DATA", data);
     data.forEach((m) => {
         //console.log("M", m);
         const modelData = {} as ExtendedModelData;
@@ -48,9 +55,8 @@ async function ps(showGpuInfo = true): Promise<boolean> {
             value: m.model,
         })
     });
-    if (data.length == 0) {
-        console.log("No models are loaded in memory");
-        return false
+    if (!display) {
+        return { isRunning: true, hasLoadedModels: true, hasOffload: hasOffload, models: models }
     }
     // models
     const { Table } = TCharts;
@@ -86,37 +92,34 @@ async function ps(showGpuInfo = true): Promise<boolean> {
     }
     table.setData(tdata);
     console.log(table.string());
-    // gpu total mem
-    if (hasGpu && showGpuInfo) {
-        const { hasGPU, info } = await getGPUMemoryInfo();
-        if (hasGPU) {
-            memTotalStats(info)
-        }
-    }
-    return hasOffload
+    return { isRunning: true, hasLoadedModels: true, hasOffload: hasOffload, models: models }
 }
 
-async function ollamaPs(): Promise<ListResponse> {
-    let ps: ListResponse;
+async function ollamaPs(): Promise<{ isRunning: boolean, models: Array<ModelResponse> }> {
     try {
-        ps = await ollama.ps();
+        const models = await ollama.ps();
+        return { isRunning: true, models: models.models };
     } catch (e: any) {
-        if (e.toString().includes("fetch failed")) {
-            console.warn("No instance of Ollama is running");
-            process.exit(0)
+        if (!e.toString().includes("fetch failed")) {
+            //console.warn("No instance of Ollama is running");
+            //process.exit(0)
+            throw new Error(`${e}`)
         }
-        throw new Error(`${e}`)
     }
-    return ps
+    return { isRunning: false, models: [] }
 }
 
-async function ollamaPsOrQuit(): Promise<ListResponse> {
-    const ps = await ollamaPs();
-    if (ps.models.length == 0) {
+async function ollamaPsOrQuit(): Promise<Array<ModelResponse>> {
+    const { isRunning, models } = await ollamaPs();
+    if (!isRunning) {
+        console.warn("No instance of Ollama is running");
+        process.exit(0)
+    }
+    if (models.length == 0) {
         console.log("No models are loaded in memory")
         process.exit(0)
     }
-    return ps
+    return models
 }
 
 export {

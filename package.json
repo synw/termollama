@@ -8,6 +8,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@commander-js/extra-typings": "^13.1.0",
     "@inquirer/checkbox": "^4.1.6",
     "@inquirer/expand": "^4.0.13",
     "@inquirer/prompts": "^7.5.1",
@@ -22,7 +23,6 @@
     "ts-jest": "^29.3.2"
   },
   "devDependencies": {
-    "@commander-js/extra-typings": "^13.1.0",
     "@locallm/types": "^0.1.9",
     "@types/cli-progress": "^3.11.6",
     "@types/jest": "^29.5.14",

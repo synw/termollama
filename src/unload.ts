@@ -1,13 +1,13 @@
 import { checkbox } from '@inquirer/prompts';
-import { ListResponse } from 'ollama';
+import { ModelResponse } from 'ollama';
 import ora from 'ora';
 import { execute } from "./lib/execute.js";
-import { getGPUMemoryInfo } from './lib/gpu.js';
-import { memTotalStats, modelsMemChart } from './lib/stats.js';
-import { ollamaPs } from './ps.js';
+import { ollamaPs } from './lib/ps.js';
+import { modelsMemChart } from './lib/models.js';
+import { getGPUMemoryInfo, gpuTotalStats } from './lib/bars/gpus.js';
 
-async function unload(rml: ListResponse) {
-    const runningModels = rml.models.map(m => m.model);
+async function unload(models: Array<ModelResponse>) {
+    const runningModels = models.map(m => m.model);
     const choices: Array<{ name: string, value: string }> = [];
     runningModels.forEach((m) => {
         choices.push({
@@ -27,10 +27,11 @@ async function unload(rml: ListResponse) {
         }
         //console.log(`Unloaded ${answer.length} model${answer.length > 1 ? 's' : ''}`);
         await new Promise(resolve => setTimeout(resolve, 350));
-        modelsMemChart(await ollamaPs());
+        const { models } = await ollamaPs();
+        modelsMemChart(models);
         const { hasGPU, info } = await getGPUMemoryInfo();
         if (hasGPU) {
-            memTotalStats(info)
+            gpuTotalStats(info)
         }
     } else {
         console.log("No models unloaded")

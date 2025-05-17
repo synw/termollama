@@ -1,16 +1,20 @@
 import { checkbox } from '@inquirer/prompts';
 import ora from 'ora';
 import { selectModelCtx } from './ctx.js';
-import { getGPUMemoryInfo } from './lib/gpu.js';
-import { memTotalStats, modelsMemChart } from './lib/stats.js';
+import { getGPUMemoryInfo, gpuTotalStats } from "./lib/bars/gpus.js";
+import { modelsMemChart } from './lib/models.js';
 import { ollama } from './state.js';
-import { ollamaPs } from './ps.js';
+import { ollamaPs } from './lib/ps.js';
 
 async function load(filters: Array<string>) {
-    const loadedModels = await ollamaPs();
+    const { isRunning, models } = await ollamaPs();
+    if (!isRunning) {
+        console.warn("No instance of Ollama is running");
+        return
+    }
     const res = await ollama.list();
     //console.log("FILTERS", filters);
-    const runningModels = loadedModels.models.map(m => m.model);
+    const runningModels = models.map(m => m.model);
     let rawData = res.models.sort((a, b) => a.size - b.size).map(m => m.model);
     const data = new Array<string>();
     rawData.forEach((row) => {
@@ -56,10 +60,11 @@ async function load(filters: Array<string>) {
             spinner.stopAndPersist({ text: m, symbol: "+" });
         }
         //console.log(`Loaded ${answer.length} model${answer.length > 1 ? 's' : ''}`)
-        modelsMemChart(await ollamaPs());
+        const ps = await ollamaPs();
+        modelsMemChart(ps.models);
         const { hasGPU, info } = await getGPUMemoryInfo();
         if (hasGPU) {
-            memTotalStats(info)
+            gpuTotalStats(info)
         }
     } else {
         console.warn("No model loaded")

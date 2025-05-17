@@ -36,6 +36,14 @@ on the screen for 5 seconds and disapear. It allows quick actions:
 - `k` → Adjust keep alive
 - `c` → Set context length
 
+### Watch mode
+
+To monitor the gpu activity in real time use:
+
+```bash
+olm -w
+```
+
 ## Models
 
 To list all the available models:
@@ -272,7 +280,7 @@ To exfiltrate a model blob to a gguf file:
 olm gguf -x qwen3:0.6b /path/to/destination
 ```
 
-This command will copy the model data from its original location to the specified destination, rename it to a `.gguf` file, and replace the original blob with a symlink pointing to the new file. Use case: to move the model to another storage location
+This command will copy the model data from its original location to the specified destination, rename it to a `.gguf` file, and replace the original blob with a symlink pointing to the new file. Use case: to move the model to another storage location. *Use at your own risks*.
 
 ### Copy Model Blob
 

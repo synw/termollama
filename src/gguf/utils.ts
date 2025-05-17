@@ -34,7 +34,7 @@ function readModelConfig(confPath: string): Record<string, any> {
     try {
         cf = fs.readFileSync(confPath, 'utf-8');
     } catch (e) {
-        throw new Error(`can not read conf file ${confPath}`)
+        throw new Error(`can not read model config file ${confPath}, ${e}`)
     }
     return JSON.parse(cf)
 }
@@ -66,15 +66,16 @@ function readModelInfo(
         return { found: false, info: {} as ModelInfo }
     }
     try {
-        //console.log("FCONF", fconf);
+        //console.log("MP", model.path);
         data = JSON.parse(fconf);
     } catch (e) {
         throw new Error(`parsing error ${model.path} ${e}`);
     }
-    //console.log(data);
+    //console.log("MDATA", data);
     const blobs = path.join(modelsDirPath, "blobs");
     const confFileName = data.config.digest.replace("sha256:", "sha256-");
     const confFilePath = path.join(blobs, confFileName);
+    //console.log("CFP", confFilePath);
     const mconf = readModelConfig(confFilePath);
     let templateFileName = "";
     let paramsFileName = "";
@@ -94,9 +95,13 @@ function readModelInfo(
                 break
         }
     });
-    //console.log("CONF", mconf);
+    //console.log("T", path.join(blobs, templateFileName));
+    //console.log("P", path.join(blobs, paramsFileName))
     const template = readTextFile(path.join(blobs, templateFileName));
-    const params = readTextFile(path.join(blobs, paramsFileName));
+    let params: string | null = null;
+    if (paramsFileName) {
+        params = readTextFile(path.join(blobs, paramsFileName));
+    }
     const blob = path.join(blobs, modelFileName);
     const quant = mconf.file_type;
     const q = model.registry == "registry.ollama.ai" ? "_" + quant : "";

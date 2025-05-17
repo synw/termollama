@@ -31,8 +31,10 @@ function displayModel(model: ModelInfo) {
 
 function displayTemplate(model: ModelInfo) {
     console.log(color.dim("Model"), color.bold(model.name), color.dim("found in registry"), model.registry);
-    console.log(color.blueBright(" Params:"));
-    console.log(JSON.parse(model.params.trim()));
+    if (model?.params) {
+        console.log(color.blueBright(" Params:"));
+        console.log(JSON.parse(model.params.trim()));
+    }
     console.log(color.blueBright(" Template:"));
     console.log(model.template);
 }

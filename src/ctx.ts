@@ -1,7 +1,7 @@
 import { checkbox, expand } from '@inquirer/prompts';
-import { ListResponse } from 'ollama';
+import { ListResponse, ModelResponse } from 'ollama';
 import ora from 'ora';
-import { ps } from './ps.js';
+import { ps } from './lib/ps.js';
 import { ollama } from './state.js';
 
 const ctxChoices = [
@@ -48,8 +48,8 @@ async function selectModelCtx() {
     return val
 }
 
-async function setCtx(loadedModels: ListResponse) {
-    const runningModels = loadedModels.models.map(m => m.model);
+async function setCtx(loadedModels: Array<ModelResponse>) {
+    const runningModels = loadedModels.map(m => m.model);
     const choices: Array<{ name: string, value: string }> = [];
     runningModels.forEach((m) => {
         choices.push({
@@ -73,7 +73,7 @@ async function setCtx(loadedModels: ListResponse) {
         }
         //console.log(`Unloaded ${answer.length} model${answer.length > 1 ? 's' : ''}`);
         await new Promise(resolve => setTimeout(resolve, 250));
-        await ps(false);
+        await ps();
     } else {
         console.log("No models selected")
     }
