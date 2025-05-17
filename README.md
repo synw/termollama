@@ -2,8 +2,9 @@
 
 [![pub package](https://img.shields.io/npm/v/termollama)](https://www.npmjs.com/package/termollama)
 
-A Linux command line utility for Ollama. By default it displays info about gpu vram usage, and
-has these additional features:
+A Linux command line utility for [Ollama](https://github.com/ollama/ollama), a user friendly
+ [Llamacpp](https://github.com/ggml-org/llama.cpp) wrapper. This utility displays info about 
+ gpu vram usage and models. It has these additional features:
 
 - **Memory management**: load and unload models with different parameters
 - **Serve command**: with flag options
@@ -11,8 +12,7 @@ has these additional features:
 
 ## Install
 
-Requirements: the `nvidia-smi` command should be available on the system
-as well as the `npm` command.
+Requirements: the `nvidia-smi` command should be available on the system.
 
 ```bash
 npm i -g termollama
@@ -57,7 +57,7 @@ olm m
 To search for a model with filters:
 
 ```bash
-olm m qwen coder
+olm m qwen
 ```
 
 ### Load models
