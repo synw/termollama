@@ -2,7 +2,7 @@ import color from "ansi-colors"
 import { Options } from "cli-progress";
 import { ExtendedModelData } from "../../interfaces.js";
 
-const barTag = ` {percentage}% [\u001b[33;1m{bar}\u001b[0m]`;
+const barTag = ` ${color.dim("{percentage}%")} \u001b[33;1m{bar}\u001b[0m`;
 const tagFormat = [barTag, "{output}"].join(" ")
 
 const modelBarOptions: Options = {
@@ -12,6 +12,7 @@ const modelBarOptions: Options = {
     autopadding: true,
     hideCursor: true,
     barGlue: '\u001b[38;5;237m',
+    barsize: 42,
 };
 
 function formatModelData(modelData: ExtendedModelData): string {

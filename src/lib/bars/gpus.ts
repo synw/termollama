@@ -1,12 +1,13 @@
 import os from "os";
-import { MultiBar, SingleBar } from "cli-progress";
+import { MultiBar, Options, SingleBar } from "cli-progress";
 import color from "ansi-colors";
 import { CardBarInfo, ExtendedModelData, GPUCardInfo, GPUInfo, TotalMemoryInfo } from "../../interfaces.js";
 import { formatFileSize } from "../utils.js";
 import { getGPUMemoryInfo } from "../gpu.js";
 import { formatModelData, modelBarOptions } from "./models.js";
+import { ps } from "../ps.js";
 
-const tagBar = "GPU {displayIndex} [{bar}] {percentage}%";
+const tagBar = "GPU {displayIndex} [{bar}\u001b[0m] {percentage}%";
 const tagMemFinal = '{displayMem}';
 const tagMemFree = '{displayFreeMem}';
 const tagMemUsed = '{displayUsedMem} used';
@@ -174,15 +175,17 @@ function gpuDetailsStats(
     if (info.cards.length == 0) { return }
     const barData = _updateInfo();
     if (barData.length == 0) { return }
-    const multibar = new MultiBar({
+    const barOptions: Options = {
         autopadding: true,
         barCompleteChar: '=',
-        barIncompleteChar: '.',
+        barIncompleteChar: '=',
         clearOnComplete: realTime,
         hideCursor: true,
         format: tagFormat,
         gracefulExit: true,
-    });
+        barGlue: '\u001b[38;5;238m',
+    };
+    const multibar = new MultiBar(barOptions);
     let i = 0;
     //console.log("INFO", info);
     const bars = new Array<SingleBar>();
@@ -193,38 +196,66 @@ function gpuDetailsStats(
         bars.push(multibar.create(data.totalMemory, data.usedMemory, data));
         ++i
     }
-    if (!realTime) {
-        // models
-        const modelBars = new Array<SingleBar>();
-        models.forEach(m => {
-            /*console.log(info.totalMemory.totalMemoryBytes, m.raw_size_vram)
-            console.log(info.totalMemory.totalMemoryBytes - m.raw_size_vram)
-            console.log("M", m);*/
-            const md = formatModelData(m);
-            modelBars.push(multibar.create(info.totalMemory.totalMemoryBytes, m.raw_size_vram,
-                { output: md },
-                modelBarOptions
-            ))
-        });
-    }
-    // total
-    const tdata = padCardInfo(barData[3]);
-    if (displayTotal) {
-        const totalBar = multibar.create(
-            barData[3].totalMemory, barData[i].usedMemory, tdata, {
-            format: totalBarTagFormat
+    if (realTime) {
+        // total
+        const ftdata = padCardInfo(barData[3]);
+        if (displayTotal) {
+            const totalBar = multibar.create(
+                barData[3].totalMemory, barData[i].usedMemory, ftdata, {
+                format: totalBarTagFormat,
+            }
+            );
+            bars.push(totalBar);
         }
-        );
-        bars.push(totalBar);
     }
-
+    // models
+    const modelBars = new Array<SingleBar>();
+    const modelBarSlots = new Array<SingleBar>();
+    models.forEach(m => {
+        /*console.log(info.totalMemory.totalMemoryBytes, m.raw_size_vram)
+        console.log(info.totalMemory.totalMemoryBytes - m.raw_size_vram)
+        console.log("M", m);*/
+        const md = formatModelData(m);
+        const bars = realTime ? modelBarSlots : modelBars;
+        bars.push(multibar.create(info.totalMemory.totalMemoryBytes, m.raw_size_vram,
+            { output: md },
+            modelBarOptions
+        ))
+    });
     //multibar.log("Start bar\n")
     if (!realTime) {
+        // total
+        const tdata = padCardInfo(barData[3]);
+        if (displayTotal) {
+            const totalBar = multibar.create(
+                barData[3].totalMemory, barData[i].usedMemory, tdata, {
+                format: totalBarTagFormat
+            }
+            );
+            bars.push(totalBar);
+        }
         multibar.stop();
         return
     }
+    // model slots
+    let maxModelsLoaded = 3;
+    if (process.env["OLLAMA_MAX_LOADED_MODELS"]) {
+        maxModelsLoaded = parseInt(process.env["OLLAMA_MAX_LOADED_MODELS"])
+    } else {
+        maxModelsLoaded = info.cards.length * 3;
+    }
+    let mi = 0;
+    while (mi < (maxModelsLoaded - models.length)) {
+        modelBarSlots.push(multibar.create(info.totalMemory.totalMemoryBytes, 0,
+            { output: "" },
+            modelBarOptions
+        ))
+        mi++
+    }
+    //console.log("MBL", modelBarSlots.length)
     // real time
     let b = 0;
+    let checkModelsInterval = 0;
     setInterval(() => {
         let nbarData: Array<CardBarInfo>;
         try {
@@ -233,7 +264,6 @@ function gpuDetailsStats(
             multibar.stop()
             throw new Error(`bar info err: ${e}`)
         }
-
         //console.log("BL", barData.length);
         if (nbarData.length == 0) {
             // unsuccessful gpu info data fetch, skipping this cycle
@@ -246,6 +276,29 @@ function gpuDetailsStats(
             b.update(nbarData[i].usedMemory, data);
             ++i
         });
+        if (checkModelsInterval == 5) {
+            try {
+                ps().then(({ models }) => {
+                    //multibar.stop();
+                    //console.log("M", models, hasLoadedModels);
+                    let nbars = 0;
+                    models.forEach(m => {
+                        const md = formatModelData(m);
+                        modelBarSlots[nbars].update(m.raw_size_vram, { output: md });
+                        ++nbars;
+                    });
+                    while (nbars < maxModelsLoaded - 1) {
+                        modelBarSlots[nbars].update(0, { output: "" });
+                        ++nbars;
+                    }
+                });
+            } catch (e) {
+                multibar.stop();
+                throw new Error(`\n\n\nUpdate models bars error: (${b}) ${e}`);
+            }
+            checkModelsInterval = 0;
+        }
+        checkModelsInterval++
         ++b
     }, 1000)
 }
