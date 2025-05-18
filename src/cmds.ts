@@ -53,7 +53,7 @@ function initCommands(program: Command) {
         .description("provides gguf files info")
         .action(async (options) => await gguf(options));
     ggufOptions.forEach(o => ggufCmd.addOption(o));
-    const statsCmd = program.command("default", { isDefault: true })
+    const statsCmd = program.command("info", { isDefault: true })
         .description("show gpu usage statistics")
         .action(async (options) => await mainCmd(options));
     stateOptions.forEach(o => statsCmd.addOption(o));

@@ -169,7 +169,7 @@ function gpuDetailsStats(
     info: GPUInfo,
     models: Array<ExtendedModelData>,
     realTime: boolean,
-    displayTotal: boolean = true,
+    maxModelBars?: number,
 ) {
     // handle failed gpu fetch cases
     if (info.cards.length == 0) { return }
@@ -199,14 +199,12 @@ function gpuDetailsStats(
     if (realTime) {
         // total
         const ftdata = padCardInfo(barData[3]);
-        if (displayTotal) {
-            const totalBar = multibar.create(
-                barData[3].totalMemory, barData[i].usedMemory, ftdata, {
-                format: totalBarTagFormat,
-            }
-            );
-            bars.push(totalBar);
+        const totalBar = multibar.create(
+            barData[3].totalMemory, barData[i].usedMemory, ftdata, {
+            format: totalBarTagFormat,
         }
+        );
+        bars.push(totalBar);
     }
     // models
     const modelBars = new Array<SingleBar>();
@@ -226,23 +224,26 @@ function gpuDetailsStats(
     if (!realTime) {
         // total
         const tdata = padCardInfo(barData[3]);
-        if (displayTotal) {
-            const totalBar = multibar.create(
-                barData[3].totalMemory, barData[i].usedMemory, tdata, {
-                format: totalBarTagFormat
-            }
-            );
-            bars.push(totalBar);
+        const totalBar = multibar.create(
+            barData[3].totalMemory, barData[i].usedMemory, tdata, {
+            format: totalBarTagFormat
         }
+        );
+        bars.push(totalBar);
         multibar.stop();
         return
     }
     // model slots
-    let maxModelsLoaded = 3;
-    if (process.env["OLLAMA_MAX_LOADED_MODELS"]) {
-        maxModelsLoaded = parseInt(process.env["OLLAMA_MAX_LOADED_MODELS"])
+    let maxModelsLoaded: number;
+    if (maxModelBars) {
+        maxModelsLoaded = maxModelBars
     } else {
-        maxModelsLoaded = info.cards.length * 3;
+        if (process.env["OLLAMA_MAX_LOADED_MODELS"]) {
+            maxModelsLoaded = parseInt(process.env["OLLAMA_MAX_LOADED_MODELS"])
+        } else {
+            //sif (options?.w)
+            maxModelsLoaded = info.cards.length * 3;
+        }
     }
     let mi = 0;
     while (mi < (maxModelsLoaded - models.length)) {

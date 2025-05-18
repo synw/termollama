@@ -50,6 +50,12 @@ const ggufOptions: Array<Option> = [
 
 const baseOptions: Array<Option> = [
     new Option("-w, --watch", "enable watch mode for real time info. Default: false"),
+    new Option(
+        "-m, --max-model-bars <number>",
+        "set the max loaded models number to use. Default: OLLAMA_MAX_LOADED_MODELS if set or number of gpus * 3 (Ollama's default)" +
+        "\nUseful when the server is launched with a custom max models setting and your OLLAMA_MAX_LOADED_MODELS env variable is unset. " +
+        "Example: run the server with 'olm s -m 4' and use 'olm -wm 4'. Or just 'olm -wm 1' if you want to see only one model bar.",
+    ),
 ]
 
 const loadOptions: Array<Option> = [

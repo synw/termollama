@@ -14,7 +14,7 @@ async function mainCmd(options: Record<string, any>) {
     const w = options.watch ?? false;
     if (hasGPU) {
         if (info.cards.length > 1) {
-            gpuDetailsStats(info, models, w, true);
+            gpuDetailsStats(info, models, w, options?.maxModelBars);
         }
     }
     if (!hasGPU || hasOffload!) {
