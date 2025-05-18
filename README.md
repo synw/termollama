@@ -106,7 +106,6 @@ Pick a model in the list and change the keep alive value.
 Valid time values:
 - `5m` → 5 minutes
 - `2h` → 2 hours
-- `1d` → 1 day
 
 ### Context window length
 
