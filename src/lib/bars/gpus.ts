@@ -10,7 +10,7 @@ const tagBar = "GPU {displayIndex} [{bar}] {percentage}%";
 const tagMemFinal = '{displayMem}';
 const tagMemFree = '{displayFreeMem}';
 const tagMemUsed = '{displayUsedMem} used';
-const tagPower = "{displayPowerDraw}W";
+const tagPower = "{displayPowerDraw}";
 const tagPowerPercent = "{powerPercent}%";
 const tagTemp = "{displayTemperature}";
 const tagFormat = new Array<string>(tagBar, tagMemFinal, tagTemp, tagPower, tagPowerPercent).join(" | ");
@@ -18,20 +18,21 @@ const totalBarTagFormat = new Array<string>(tagBar, tagMemFinal, tagPower, tagPo
 
 function padCardInfo(data: CardBarInfo): CardBarInfo {
     if (data.formatMaxLength.gpuFinal > data.displayMem.length) {
-        data.displayMem = data.displayMem.padEnd(data.formatMaxLength.gpuFinal, " ");
+        data.displayMem = data.displayMem.padEnd(data.formatMaxLength.gpuFinal);
     }
     if (data.formatMaxLength.temp > data.displayTemperature.length) {
-        data.displayTemperature = data.displayTemperature.padEnd(data.formatMaxLength.temp, " ");
+        data.displayTemperature = data.displayTemperature.padEnd(data.formatMaxLength.temp);
     }
-    if (data.formatMaxLength.power > data.displayPowerDraw.toString().length) {
-        data.displayPowerDraw = data.displayPowerDraw.toString().padEnd(data.formatMaxLength.power, " ");
-    }
+    /*if (data.formatMaxLength.power > data.displayPowerDraw.toString().length) {
+        data.displayPowerDraw = data.displayPowerDraw.toString().padEnd(data.formatMaxLength.power);
+    }*/
     return data
 }
 
 function calcSectionsLengthAndFormat(
     data: CardBarInfo,
     colorizeMem = false,
+    colorizePower = true,
 ): CardBarInfo {
     const freeMem = data.totalMemory - data.usedMemory;
     const formatedGpuFree = tagMemFree.replace(`{displayFreeMem}`, formatFileSize(freeMem));
@@ -47,9 +48,24 @@ function calcSectionsLengthAndFormat(
     } else {
         dtf = color.redBright(dt)
     }
-    //const dtf = data.temperature < 30 ? color.green(dt) : color.greenBright(dt);
+    const pwd = data.powerDraw.toString() + " W";
+    let xwft: string
+    if (colorizePower) {
+        xwft = pwd;
+        if (data.powerPercent > 30) {
+            xwft = color.yellowBright(pwd)
+        } else {
+            if (data.powerPercent >= 100) {
+                xwft = xwft
+            } else {
+                xwft = xwft + " "
+            }
+        }
+    } else {
+        xwft = pwd
+    }
     const formatedTemp = tagTemp.replace("{displayTemperature}", dtf);
-    const formatedPower = tagPower.replace("{displayPowerDraw}W", data.powerDraw.toString());
+    const formatedPower = tagPower.replace("{displayPowerDraw}", xwft);
     let formatedMemFinal: string
     if (colorizeMem) {
         formatedMemFinal = color.yellowBright(formatedGpuUsed) + " " + color.greenBright(`${formatedGpuFree} free`);
@@ -70,9 +86,6 @@ function calcSectionsLengthAndFormat(
     data.displayUsedMem = formatedGpuUsed;
     data.displayTemperature = formatedTemp;
     data.displayPowerDraw = formatedPower;
-    /*if (colorizeMem) {
-        data.index = color.dim(data.index)
-    }*/
     return data
 }
 
@@ -106,7 +119,7 @@ function _updateInfo(): Array<CardBarInfo> {
             formatMaxLength: formatMaxLength,
             powerDraw: gpu.powerDraw,
             powerLimit: gpu.powerLimit,
-            powerPercent: Math.round(((gpu.powerDraw / gpu.powerLimit) * 100)).toString(),
+            powerPercent: Math.round(((gpu.powerDraw / gpu.powerLimit) * 100)),
             temperature: gpu.temperature,
             displayIndex: gpu.index.toString(),
             displayTemperature: "",
@@ -133,7 +146,7 @@ function _updateInfo(): Array<CardBarInfo> {
         powerDraw: totalPowerDraw,
         powerLimit: totalPowerLimit,
         temperature: 0,
-        powerPercent: totalPowerPercentage.toString(),
+        powerPercent: totalPowerPercentage,
         displayTemperature: "",
         displayMem: "",
         displayFreeMem: "",
@@ -148,7 +161,7 @@ function _updateInfo(): Array<CardBarInfo> {
             power: 0,
         },
     };
-    const finalData = calcSectionsLengthAndFormat(totalCardInfo, true);
+    const finalData = calcSectionsLengthAndFormat(totalCardInfo, true, false);
     barData.push(finalData);
     return barData;
 }

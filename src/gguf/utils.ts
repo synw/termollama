@@ -190,10 +190,28 @@ function detectConfPath(): string {
     }
     switch (os.platform()) {
         case "linux":
-            ollamaModelsDir = path.join(process.env?.HOME ?? "~", ".ollama", "models");
+            const dir = path.join(process.env?.HOME ?? "~", ".ollama", "models");
+            // check if dir exists
+            if (fs.existsSync(dir)) {
+                return dir
+            }
+            const dir2 = path.join("user", "share", "ollama", "models");
+            // check if dir exists
+            if (fs.existsSync(dir2)) {
+                return dir2
+            }
             break
         case "darwin":
-            ollamaModelsDir = path.join(process.env?.HOME ?? "~", "Library", "Application Support", "Ollama", "models")
+            const dir3 = path.join(process.env?.HOME ?? "~", "Library", "Application Support", "Ollama", "models");
+            // check if dir exists
+            if (fs.existsSync(dir3)) {
+                return dir3
+            }
+            const dir4 = path.join(process.env?.HOME ?? "~", ".ollama", "models");
+            // check if dir exists
+            if (fs.existsSync(dir4)) {
+                return dir4
+            }
             break
         case "win32":
             try {
