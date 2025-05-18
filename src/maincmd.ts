@@ -14,7 +14,7 @@ async function mainCmd(options: Record<string, any>) {
     const w = options.watch ?? false;
     if (hasGPU) {
         if (info.cards.length > 1) {
-            gpuDetailsStats(info, models, w, true);
+            gpuDetailsStats(info, models, w, options?.maxModelBars);
         }
     }
     if (!hasGPU || hasOffload!) {
@@ -29,7 +29,7 @@ async function processAction(options: StateOptions) {
     const k = await actionBar();
     switch (k) {
         case "l":
-            await load([]);
+            await load([], {});
             break;
         case "k":
             await keepAlive(await ollamaPsOrQuit());
