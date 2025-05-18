@@ -52,9 +52,22 @@ const baseOptions: Array<Option> = [
     new Option("-w, --watch", "enable watch mode for real time info. Default: false"),
 ]
 
+const loadOptions: Array<Option> = [
+    ...stateOptions,
+    new Option(
+        "-k, --keep-alive <timestring>",
+        "set the keep alive time for the model. Default: Ollama server's keep alive time"
+    ),
+    new Option(
+        "-c, --ctx <number_or_unit>",
+        "set the model context window value: use a number or a predefined unit:\n2K, 4K, 8K, 16K, 32K, 64K, 128K\nDefault: Ollama server's context window",
+    ),
+]
+
 export {
     stateOptions,
     serveOptions,
     ggufOptions,
     baseOptions,
+    loadOptions,
 }

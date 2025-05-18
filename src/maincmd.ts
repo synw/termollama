@@ -29,7 +29,7 @@ async function processAction(options: StateOptions) {
     const k = await actionBar();
     switch (k) {
         case "l":
-            await load([]);
+            await load([], {});
             break;
         case "k":
             await keepAlive(await ollamaPsOrQuit());
