@@ -113,6 +113,9 @@ function getGPUMemoryInfo(): { hasGPU: boolean, info: GPUInfo, success: boolean 
         usedMemoryBytes += c.memory.usedMemoryBytes;
     });
     try {
+        if (totalMemoryBytes == 0) {
+            return { hasGPU: hasGPU, info: {} as GPUInfo, success: false };
+        }
         const totalUsagePercentage = calculateUsagePercentage(usedMemoryBytes, totalMemoryBytes);
         const info: GPUInfo = {
             totalMemory: {

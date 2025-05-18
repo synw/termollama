@@ -11,10 +11,10 @@ const tagMemFinal = '{displayMem}';
 const tagMemFree = '{displayFreeMem}';
 const tagMemUsed = '{displayUsedMem} used';
 const tagPower = "{displayPowerDraw}";
-const tagPowerPercent = "{powerPercent}%";
+//const tagPowerPercent = "{powerPercent}%";
 const tagTemp = "{displayTemperature}";
-const tagFormat = new Array<string>(tagBar, tagMemFinal, tagTemp, tagPower, tagPowerPercent).join(" | ");
-const totalBarTagFormat = new Array<string>(tagBar, tagMemFinal, tagPower, tagPowerPercent).join(" | ");
+const tagFormat = new Array<string>(tagBar, tagMemFinal, tagTemp, tagPower).join(" | ");
+const totalBarTagFormat = new Array<string>(tagBar, tagMemFinal, tagPower).join(" | ");
 
 function padCardInfo(data: CardBarInfo): CardBarInfo {
     if (data.formatMaxLength.gpuFinal > data.displayMem.length) {
@@ -49,23 +49,21 @@ function calcSectionsLengthAndFormat(
         dtf = color.redBright(dt)
     }
     const pwd = data.powerDraw.toString() + " W";
-    let xwft: string
+    let xwft = pwd;
     if (colorizePower) {
-        xwft = pwd;
         if (data.powerPercent > 30) {
             xwft = color.yellowBright(pwd)
         } else {
-            if (data.powerPercent >= 100) {
+            if (data.powerDraw >= 100) {
                 xwft = xwft
             } else {
                 xwft = xwft + " "
             }
         }
-    } else {
-        xwft = pwd
     }
+    const fpp = color.dim(data.powerPercent.toString() + "%");
     const formatedTemp = tagTemp.replace("{displayTemperature}", dtf);
-    const formatedPower = tagPower.replace("{displayPowerDraw}", xwft);
+    const formatedPower = tagPower.replace("{displayPowerDraw}", xwft + " " + fpp);
     let formatedMemFinal: string
     if (colorizeMem) {
         formatedMemFinal = color.yellowBright(formatedGpuUsed) + " " + color.greenBright(`${formatedGpuFree} free`);
@@ -78,9 +76,9 @@ function calcSectionsLengthAndFormat(
     if (formatedTemp.length > data.formatMaxLength.temp) {
         data.formatMaxLength.temp = formatedTemp.length;
     }
-    if (formatedPower.length > data.formatMaxLength.power) {
+    /*if (formatedPower.length > data.formatMaxLength.power) {
         data.formatMaxLength.power = formatedPower.length;
-    }
+    }*/
     data.displayMem = formatedMemFinal;
     data.displayFreeMem = formatedGpuFree;
     data.displayUsedMem = formatedGpuUsed;
@@ -172,9 +170,10 @@ function gpuDetailsStats(
     realTime: boolean,
     displayTotal: boolean = true,
 ) {
-    //console.log("GTS", info)
+    // handle failed gpu fetch cases
     if (info.cards.length == 0) { return }
-    const barData = _updateInfo()
+    const barData = _updateInfo();
+    if (barData.length == 0) { return }
     const multibar = new MultiBar({
         autopadding: true,
         barCompleteChar: '=',
