@@ -8,7 +8,7 @@ A Linux command line utility for [Ollama](https://github.com/ollama/ollama), a u
 
 - **Memory management**: load and unload models with different parameters
 - **Serve command**: with flag options
-- **Gguf utilities**: extract gguf files from the Ollama model blobs
+- **Gguf utilities**: extract gguf files or links from the Ollama models blob
 
 ## Install
 

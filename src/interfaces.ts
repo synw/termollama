@@ -102,6 +102,10 @@ interface GPUInfo {
     totalMemory: TotalMemoryInfo;
     cards: Array<GPUCardInfo>;
 }
+interface GPUInfo {
+    totalMemory: TotalMemoryInfo;
+    cards: Array<GPUCardInfo>;
+}
 
 interface CardBarInfo {
     index: number;
@@ -110,7 +114,7 @@ interface CardBarInfo {
     freeMemory: number;
     usedMemoryPercent: number;
     powerDraw: number;
-    powerPercent: string;
+    powerPercent: number;
     powerLimit: number;
     temperature: number;
     displayFreeMem: string;
