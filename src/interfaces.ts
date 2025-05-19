@@ -75,6 +75,7 @@ interface ServeOptions {
     ctx?: number;
     maxLoadedModels?: number;
     maxQueue?: number;
+    numParallel?: number;
     port?: number;
     cpu: boolean;
     gpu?: Array<number>;

@@ -36,6 +36,9 @@ async function serve(options: ServeOptions) {
     if (options?.maxQueue) {
         process.env["OLLAMA_MAX_QUEUE"] = options.maxQueue.toString()
     }
+    if (options?.numParallel) {
+        process.env["OLLAMA_NUM_PARALLEL"] = options.numParallel.toString()
+    }
     if (options?.registry) {
         process.env["OLLAMA_MODELS"] = options.registry;
     }

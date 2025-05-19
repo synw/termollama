@@ -8,7 +8,8 @@ function getGPUCardsInfo(): { ok: boolean, hasGPU: boolean, cards: Array<GPUCard
         "--format=csv,noheader,nounits"
     ], {
         encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'inherit'] // stdin, stdout, stderr
+        stdio: ['ignore', 'pipe', 'inherit'],
+        env: process.env,
     });
     //console.log("CRES", cmdRes)
     if (cmdRes.error || cmdRes.output == null) {

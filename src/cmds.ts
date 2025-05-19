@@ -22,7 +22,6 @@ function initCommands(program: Command) {
     const envCmd = program.command("env").alias("e")
         .description("show the Ollama environment variables used")
         .action(async (options) => await confEnv());
-    stateOptions.forEach(o => envCmd.addOption(o));
     const memCmd = program.command("mem")
         .description("show a chart of gpu memory used by models")
         .action(async (options) => modelsMemChart(await ollamaPsOrQuit()));;
@@ -56,7 +55,6 @@ function initCommands(program: Command) {
     const statsCmd = program.command("info", { isDefault: true })
         .description("show gpu usage statistics")
         .action(async (options) => await mainCmd(options));
-    stateOptions.forEach(o => statsCmd.addOption(o));
     baseOptions.forEach(o => statsCmd.addOption(o));
 }
 

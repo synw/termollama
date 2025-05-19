@@ -280,10 +280,9 @@ function gpuDetailsStats(
         if (checkModelsInterval == 5) {
             try {
                 ps().then(({ models }) => {
-                    //multibar.stop();
-                    //console.log("M", models, hasLoadedModels);
                     let nbars = 0;
                     models.forEach(m => {
+
                         const md = formatModelData(m);
                         modelBarSlots[nbars].update(m.raw_size_vram, { output: md });
                         ++nbars;

@@ -17,7 +17,8 @@ async function mainCmd(options: Record<string, any>) {
             gpuDetailsStats(info, models, w, options?.maxModelBars);
         }
     }
-    if (!hasGPU || hasOffload!) {
+    if ((!hasGPU || hasOffload!) && !w) {
+        //throw new Error("B")
         ramStats(hasGPU);
     }
     if (isRunning && !w) {
