@@ -1,4 +1,4 @@
-import { exit } from "process";
+import { exit } from "node:process";
 import chalk from 'chalk';
 
 function runtimeError(...msg: string[]) {
