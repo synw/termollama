@@ -10,7 +10,6 @@ const serveOptions: Array<Option> = [
     new Option("-4 --kv-4", "use q4 kv cache").implies({ "flashAttention": true }).conflicts("kv8"),
     new Option("-8 --kv-8", "use q8 kv cache").implies({ "flashAttention": true }),
     new Option("-d, --debug", "enable debug mode. Default: false"),
-    new Option("--cpu", "use cpu only").conflicts("gpu"),
     new Option("-k, --keep-alive <timestring>", "time to keep the server alive after no requests. Example: '1h'"),
     new Option("-c, --ctx <number>", "context size for the models. Default: 2048"),
     new Option("-m, --max-loaded-models <number>", "maximum number of models to load at once."),
@@ -19,6 +18,7 @@ const serveOptions: Array<Option> = [
     new Option("--host <hostname>", "hostname to serve the server on. Default: 'localhost'"),
     new Option("-p, --port <number>", "port to serve the server on. Default: '11434'"),
     new Option("-r, --registry <path>", "use a model registry directory"),
+    new Option("--cpu", "use cpu only").conflicts("gpu"),
     new Option("-g, --gpu <number(s...>", "use given gpus: ex: '0 1'").argParser((v: any, p: any) => {
         const iv = parseInt(v);
         if (isNaN(iv)) {
@@ -49,6 +49,7 @@ const ggufOptions: Array<Option> = [
 ];
 
 const baseOptions: Array<Option> = [
+    ...stateOptions,
     new Option("-w, --watch", "enable watch mode for real time info. Default: false"),
     new Option(
         "-m, --max-model-bars <number>",
@@ -68,6 +69,16 @@ const loadOptions: Array<Option> = [
         "-c, --ctx <number_or_unit>",
         "set the model context window value: use a number or a predefined unit:\n2K, 4K, 8K, 16K, 32K, 64K, 128K\nDefault: Ollama server's context window",
     ),
+    new Option(
+        "-n, --ngl <number>",
+        "number of layers to load on the gpu",
+    ).argParser((v: any, p: any) => {
+        const iv = parseInt(v);
+        if (isNaN(iv)) {
+            throw new InvalidArgumentError(`--ngl option: ${v} is not a number`);
+        }
+        return iv
+    }),
 ]
 
 export {

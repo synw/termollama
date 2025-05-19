@@ -18,7 +18,11 @@ const modelBarOptions: Options = {
 function formatModelData(modelData: ExtendedModelData): string {
     const buf = new Array<string>();
     buf.push(color.bold(" " + modelData.name));
-    buf.push(modelData.size);
+    buf.push(modelData.size_vram);
+    if (modelData.raw_size_ram > 0) {
+        buf.push(color.red(modelData.size_ram));
+        buf.push(modelData.ram_percentage + " ram");
+    }
     buf.push(color.dim(modelData.expire));
     return buf.join(" ")
 }

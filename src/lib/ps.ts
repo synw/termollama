@@ -28,25 +28,24 @@ async function ps(display = false): Promise<{
     let hasOffload = false;
     //console.log("PS DATA", data);
     data.forEach((m) => {
-        //console.log("M", m);
+        //throw new Error(JSON.stringify(m, null, "  "))
+        const raw_size_ram = m.size - m.size_vram;
         const modelData = {} as ExtendedModelData;
         modelData.name = m.name;
         modelData.size = formatFileSize(m.size);
         modelData.quant = m.details.quantization_level;
         modelData.params = m.details.parameter_size;
-        modelData.size_ram = hasGpu ? "0" : formatFileSize(m.size);
-        modelData.ram_percentage = hasGpu ? "0%" : "100%";
-        modelData.size_vram = "0";
-        modelData.raw_size_ram = hasGpu ? 0 : m.size;
+        modelData.size_ram = raw_size_ram == 0 ? "0" : formatFileSize(m.size);
+        modelData.ram_percentage = "0";
+        modelData.size_vram = m.size_vram == 0 ? "0" : formatFileSize(m.size_vram);
+        modelData.raw_size_ram = raw_size_ram;
+        modelData.raw_size_vram = m.size_vram;
+        modelData.size_vram = m.size_vram == 0 ? "0" : formatFileSize(m.size_vram);
         modelData.expire = "";
-        modelData.raw_size_vram = m?.size_vram ?? 0;
-        modelData.size_vram = m?.size_vram ? formatFileSize(m.size_vram) : "";
-        if (hasGpu) {
-            if (m.size > m.size_vram) {
-                modelData.size_ram = formatFileSize(m.size - m.size_vram);
-                modelData.ram_percentage = (((m.size - m.size_vram) / m.size) * 100).toFixed(1) + '%';
-                hasOffload = true;
-            }
+        if (m.size > m.size_vram) {
+            modelData.size_ram = formatFileSize(raw_size_ram);
+            modelData.ram_percentage = (((raw_size_ram) / m.size) * 100).toFixed(1) + '%';
+            hasOffload = true;
         }
         modelData.expire = getTimeHumanizedUntil(m.expires_at.toString());
         models.push(modelData);

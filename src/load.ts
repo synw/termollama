@@ -93,6 +93,9 @@ async function load(filters: Array<string>, options: Record<string, any>) {
             if (selectedKeepAlive) {
                 ka.keep_alive = selectedKeepAlive
             }
+            if (options?.ngl) {
+                opts.num_gpu = options.ngl
+            }
             const payload: GenerateRequest = {
                 prompt: "", model: m, ...ka, options: opts
             };
