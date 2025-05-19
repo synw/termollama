@@ -5,7 +5,7 @@
   "version": "0.0.13",
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "test": "jest --config jest.config.js"
   },
   "dependencies": {
     "@commander-js/extra-typings": "^13.1.0",

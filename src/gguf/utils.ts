@@ -1,6 +1,6 @@
 import os from 'node:os';
 import path from 'node:path';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { ModelInfo, OllamaRegistry } from '../interfaces.js';
 import { runtimeDataError } from '../lib/user_msgs.js';
 
@@ -242,6 +242,7 @@ export {
     readRegistries,
     registriesStats,
     readModelInfo,
+    findModel,
 }
 
 
