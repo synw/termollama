@@ -19,25 +19,17 @@ function initCommands(program: Command) {
         .alias("s")
         .action(async (options) => await serve(options as ServeOptions));
     serveOptions.forEach(o => serveCmd.addOption(o));
-    const envCmd = program.command("env").alias("e")
+    program.command("env").alias("e")
         .description("show the Ollama environment variables used")
         .action(async (options) => await confEnv());
     const memCmd = program.command("mem")
         .description("show a chart of gpu memory used by models")
         .action(async (options) => modelsMemChart(await ollamaPsOrQuit()));;
     stateOptions.forEach(o => memCmd.addOption(o));
-    const ctxCmd = program.command("ctx").alias("c")
-        .description("set context length for a model loaded in memory")
-        .action(async (options) => await setCtx(await ollamaPsOrQuit()));
-    stateOptions.forEach(o => ctxCmd.addOption(o));
     const unloadCmd = program.command("unload").alias("u")
         .description("unload a model from memory")
         .action(async (options) => await unload(await ollamaPsOrQuit()));
     stateOptions.forEach(o => unloadCmd.addOption(o));
-    const keepAliveCmd = program.command("keep-alive").alias("k")
-        .description("set the keep alive value for a model")
-        .action(async (options) => await keepAlive(await ollamaPsOrQuit()));
-    stateOptions.forEach(o => keepAliveCmd.addOption(o));
     const modelsCmd = program.command("models").alias("m")
         .description("show a list of models, optional keyword filters")
         .argument("[filters...]", "filter model names: ex 'olm -m qwen mistral'")

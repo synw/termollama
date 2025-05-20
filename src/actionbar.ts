@@ -1,9 +1,13 @@
 import color from "ansi-colors";
 import { keyPressDetection } from "./lib/utils.js";
-import { KeyPress } from './interfaces.js';
+import { KeyPress, StateOptions } from './interfaces.js';
+import { load } from "./load.js";
+import { unload } from "./unload.js";
+import { ollamaPsOrQuit } from "./lib/ps.js";
+import { modelsMemChart } from "./lib/models.js";
 
 async function actionBar() {
-    const txt = `${color.dim("Keys:")} ${color.bold("m")} memory, ${color.bold("l")} load, ${color.bold("u")} unload, ${color.bold("k")} keep alive, ${color.bold("c")} set context window`;
+    const txt = `${color.dim("Keys:")} ${color.bold("m")} memory, ${color.bold("l")} load, ${color.bold("u")} unload`;
     const clearLine = () => {
         process.stdout.cursorTo(0);
         process.stdout.clearLine(1);
@@ -22,6 +26,25 @@ async function actionBar() {
     return kp;
 }
 
+async function processAction(options: StateOptions) {
+    const k = await actionBar();
+    switch (k) {
+        case "l":
+            await load([], {});
+            break;
+        case "u":
+            await unload(await ollamaPsOrQuit());
+            break
+        case "m":
+            modelsMemChart(await ollamaPsOrQuit());
+            await processAction(options);
+            break
+        default:
+            process.exit(0)
+    }
+}
+
 export {
     actionBar,
+    processAction,
 }

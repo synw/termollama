@@ -3,8 +3,8 @@
 [![pub package](https://img.shields.io/npm/v/termollama)](https://www.npmjs.com/package/termollama)
 
 A Linux command line utility for [Ollama](https://github.com/ollama/ollama), a user friendly
- [Llamacpp](https://github.com/ggml-org/llama.cpp) wrapper. This utility displays info about 
- gpu vram usage and models. It has these additional features:
+ [Llamacpp](https://github.com/ggml-org/llama.cpp) wrapper. It displays info about 
+ gpu vram usage and models and has these additional features:
 
 - **Memory management**: load and unload models with different parameters
 - **Serve command**: with flag options
@@ -30,19 +30,34 @@ Run the `olm` command without any argument to display memory stats. Output:
 
 Note the action bar at the bottom with quick actions shortcuts: it will stay
 on the screen for 5 seconds and disapear. It allows quick actions:
-- `m` → Show memory chart
+- `m` → Show a memory chart
 - `l` → Load models
 - `u` → Unload models
-- `k` → Adjust keep alive
-- `c` → Set context length
 
 ### Watch mode
 
-To monitor the gpu activity in real time use:
+To monitor the activity in real time:
 
 ```bash
 olm -w
 ```
+
+#### Options
+
+- `-m, --max-model-bars <number>`: Set the maximum number of model bars to display. Defaults to `OLLAMA_MAX_LOADED_MODELS` if set, otherwise 3 × number of GPUs.
+
+#### Environment Variables
+
+- `TERMOLLAMA_TEMPS`: Set temperature thresholds as comma-separated values (low, mid, high) for color-coding.  
+  Example:  
+  ```bash
+  export TERMOLLAMA_TEMPS="30,55,75"
+  ```
+- `TERMOLLAMA_POWER`: Set power usage threshold percentage for color-coding.  
+  Example:  
+  ```bash
+  export TERMOLLAMA_POWER="20"
+  ```
 
 ## Models
 
@@ -70,14 +85,35 @@ olm load
 olm l
 ```
 
-Output after models selection:
+You can specify optional parameters when loading:
 
-![](doc/img/load.png)
+- `--ctx` or `-c`: Set the context window (e.g., `2k`, `4k`, `8192`).
+- `--keep-alive` or `-k`: Set the keep alive timeout (e.g., `5m`, `2h`).
+- `--ngl` or `-n`: Number of GPU layers to load.
 
-To find models by name and load them use the command with your search arguments. Output of
-`olm l qw`:
+#### Examples:
 
-![](doc/img/search.png)
+1. **Basic load with search**:
+   ```bash
+   olm l qw
+   ```
+   This searches for models containing "qw" and lets you select from the filtered list. Example output:
+
+   ![](doc/img/search.png)
+
+2. **Load with context and keep alive**:
+   ```bash
+   olm load --ctx 8k --keep-alive 1h mistral
+   ```
+   Search for "mistral" models and load with an 8k context window and a 1 hour keep alive time.
+
+3. **Specify GPU layers**:
+   ```bash
+   olm l --ngl 40 qwen3:30b
+   ```
+   Loads qwen3:30b model with 40 GPU layers, the rest will go to ram.
+
+Filters can be combined (e.g., `olm l qwen3 4b` finds models with both terms). The selected models are loaded into memory with interactive prompts for parameters if not specified via flags.
 
 ### Unload models
 
@@ -91,54 +127,6 @@ olm u
 
 Pick the models to unload from the list.
 
-### Keep alive
-
-To modify the keep alive parameters per model: 
-
-```bash
-olm keep-alive
-# or
-olm k
-```
-
-Pick a model in the list and change the keep alive value.
-
-Valid time values:
-- `5m` → 5 minutes
-- `2h` → 2 hours
-
-### Context window length
-
-To set the context window used by an model loaded in memory:
-
-```bash
-olm ctx
-# or
-olm c
-```
-
-### Environment variables
-
-To show the environment variables used by Ollama:
-
-```bash
-olm env
-# or
-olm e
-```
-
-## Instance options
-
-To use a different instance than the default `localhost:11434`:
-
-- **`-u, --use-instance <hostdomain>`**: Use a specific Ollama instance as the source. Example:
-  ```bash
-  olm models -u 192.168.1.8:11434
-  ```
-  This command will list the models from the Ollama instance running at `192.168.1.8` on port `11434`.
-
-- **`-s, --use-https`**: Use HTTPS protocol to reach the Ollama instance.
-
 ## Serve command
 
 A serve command is available, equivalent to `ollama serve` but with flag options.
@@ -148,6 +136,17 @@ olm serve
 # or
 olm s
 ```
+
+Serve command options directly map to environment variables (they are changed within the process only):
+
+| Option Flag          | Environment Variable      |
+|----------------------|---------------------------|
+| `--flash-attention`  | `OLLAMA_FLASH_ATTENTION`  |
+| `--kv-4`             | `OLLAMA_KV_CACHE_TYPE=q4_0`|
+| `--kv-8`             | `OLLAMA_KV_CACHE_TYPE=q8_0`|
+| `--keep-alive`       | `OLLAMA_KEEP_ALIVE`       |
+| `--ctx`              | `OLLAMA_CONTEXT_LENGTH`   |
+| `--max-loaded-models`| `OLLAMA_MAX_LOADED_MODELS`|
 
 ### Usage
 
@@ -168,6 +167,7 @@ Options of `olm serve`:
 - **Models registry**: set the directory for models registry: `--registry ~/some/path/ollama_models` or `-r ~/some/path/ollama_models`
 
 #### Key Options:
+
 - **Flash Attention**: `-f`
 - **KV Cache**: 
   - `-4` → `q4_0` quantization (low memory)
@@ -208,6 +208,42 @@ olm s -p 11385 -r ~/some/path/ollama_models
 ```
 
 Run on localhost:11385 with a custom models registry directory: use an empty directory to create a new registry
+
+
+### Environment variables info
+
+To show the environment variables used by Ollama:
+
+```bash
+olm env
+# or
+olm e
+```
+
+| Variable                | Description                                                                 |
+|-------------------------|-----------------------------------------------------------------------------|
+| `OLLAMA_FLASH_ATTENTION`| Enable flash attention (1 to enable)                                       |
+| `OLLAMA_KV_CACHE_TYPE`   | Set KV cache quantization (e.g. `q4_0`, `q8_0`)                           |
+| `OLLAMA_KEEP_ALIVE`      | Default keep alive timeout (e.g. `5m`, `2h`)                              |
+| `OLLAMA_CONTEXT_LENGTH`  | Default context window length (e.g. `4096`)                               |
+| `OLLAMA_MAX_LOADED_MODELS`| Maximum number of models to load simultaneously                          |
+| `OLLAMA_MAX_QUEUE`       | Maximum request queue size                                                |
+| `OLLAMA_NUM_PARALLEL`    | Number of parallel requests allowed                                       |
+| `OLLAMA_HOST`            | Server host address (default `localhost`)                                 |
+| `OLLAMA_MODELS`          | Custom models registry directory                                          |
+| `CUDA_VISIBLE_DEVICES`   | GPU selection (use `-1` to force CPU mode) 
+
+## Instance options
+
+To use a different instance than the default `localhost:11434`:
+
+- **`-u, --use-instance <hostdomain>`**: Use a specific Ollama instance as the source. Example:
+  ```bash
+  olm models -u 192.168.1.8:11434
+  ```
+  This command will list the models from the Ollama instance running at `192.168.1.8` on port `11434`.
+
+- **`-s, --use-https`**: Use HTTPS protocol to reach the Ollama instance.
 
 ## Information about gguf files
 

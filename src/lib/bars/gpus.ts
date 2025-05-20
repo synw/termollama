@@ -6,6 +6,7 @@ import { formatFileSize } from "../utils.js";
 import { getGPUMemoryInfo } from "../gpu.js";
 import { formatModelData, modelBarOptions } from "./models.js";
 import { ps } from "../ps.js";
+import { displayThresholds } from "../../state.js";
 
 const tagBar = "GPU {displayIndex} [{bar}\u001b[0m] {percentage}%";
 const tagMemFinal = '{displayMem}';
@@ -40,11 +41,11 @@ function calcSectionsLengthAndFormat(
     const formatedGpuUsed = tagMemUsed.replace(`{displayUsedMem}`, formatFileSize(data.usedMemory));
     const dt = `${data.temperature}°C`;
     let dtf: string;
-    if (data.temperature < 30) {
+    if (data.temperature < displayThresholds.temp.low) {
         dtf = color.green(dt)
-    } else if (data.temperature < 50) {
+    } else if (data.temperature < displayThresholds.temp.mid) {
         dtf = color.greenBright(dt)
-    } else if (data.temperature < 70) {
+    } else if (data.temperature < displayThresholds.temp.high) {
         dtf = color.yellowBright(dt)
     } else {
         dtf = color.redBright(dt)
@@ -52,7 +53,7 @@ function calcSectionsLengthAndFormat(
     const pwd = data.powerDraw.toString() + " W";
     let xwft = pwd;
     if (colorizePower) {
-        if (data.powerPercent > 30) {
+        if (data.powerPercent > displayThresholds.power) {
             xwft = color.yellowBright(pwd)
         } else {
             if (data.powerDraw >= 100) {

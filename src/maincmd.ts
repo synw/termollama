@@ -1,12 +1,6 @@
-import { actionBar } from "./actionbar.js";
-import { setCtx } from "./ctx.js";
-import { StateOptions } from "./interfaces.js";
-import { keepAlive } from "./keepalive.js";
+import { processAction } from "./actionbar.js";
 import { getGPUMemoryInfo, gpuDetailsStats, ramStats } from "./lib/bars/gpus.js";
-import { modelsMemChart } from "./lib/models.js";
-import { ollamaPsOrQuit, ps } from "./lib/ps.js";
-import { load } from "./load.js";
-import { unload } from "./unload.js";
+import { ps } from "./lib/ps.js";
 
 async function mainCmd(options: Record<string, any>) {
     const { hasGPU, info } = getGPUMemoryInfo();
@@ -18,35 +12,10 @@ async function mainCmd(options: Record<string, any>) {
         }
     }
     if ((!hasGPU || hasOffload!) && !w) {
-        //throw new Error("B")
         ramStats(hasGPU);
     }
     if (isRunning && !w) {
         await processAction(options);
-    }
-}
-
-async function processAction(options: StateOptions) {
-    const k = await actionBar();
-    switch (k) {
-        case "l":
-            await load([], {});
-            break;
-        case "k":
-            await keepAlive(await ollamaPsOrQuit());
-            break;
-        case "u":
-            await unload(await ollamaPsOrQuit());
-            break
-        case "c":
-            await setCtx(await ollamaPsOrQuit());
-            break
-        case "m":
-            modelsMemChart(await ollamaPsOrQuit());
-            await processAction(options);
-            break
-        default:
-            process.exit(0)
     }
 }
 
