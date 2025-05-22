@@ -61,6 +61,12 @@ interface ModelInfo {
     quant: string;
 }
 
+interface MemInfo {
+    hasGpu: boolean,
+    gpu: GPUInfo,
+    gpusToUse: Array<number> | undefined,
+}
+
 interface StateOptions {
     useInstance?: string;
     useHttps?: boolean;
@@ -147,6 +153,7 @@ export {
     OllamaModelFamilly,
     OllamaRegistry,
     ModelInfo,
+    MemInfo,
     GPUCardInfo,
     GPUInfo,
     CardBarInfo,

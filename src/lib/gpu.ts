@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { GPUCardInfo, GPUInfo, TotalMemoryInfo } from '../interfaces.js';
+import { memInfo } from '../state.js';
 
 function getGPUCardsInfo(): { ok: boolean, hasGPU: boolean, cards: Array<GPUCardInfo> } {
     // Execute nvidia-smi command to get memory usage and total memory information
@@ -8,7 +9,6 @@ function getGPUCardsInfo(): { ok: boolean, hasGPU: boolean, cards: Array<GPUCard
         "--format=csv,noheader,nounits"
     ], {
         encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'inherit'],
         env: process.env,
     });
     //console.log("CRES", cmdRes)
@@ -31,6 +31,13 @@ function getGPUCardsInfo(): { ok: boolean, hasGPU: boolean, cards: Array<GPUCard
     }
     const cards = new Array<GPUCardInfo>();
     for (const row of gpus) {
+        //console.log(row)
+        //console.log(row[0], "Exclude", !(memInfo.gpusToUse ?? []).includes(row[0]))
+        if (memInfo.gpusToUse) {
+            if (!memInfo.gpusToUse.includes(row[0])) {
+                continue
+            }
+        }
         const totalMemoryBytes = Math.round(Number(row[1]) * 1048576);
         const usedMemoryBytes = Math.round(Number(row[2]) * 1048576);
         try {
@@ -52,8 +59,50 @@ function getGPUCardsInfo(): { ok: boolean, hasGPU: boolean, cards: Array<GPUCard
             //sreturn { ok: false, hasGPU: false, cards: [] };
         }
     }
+    //console.log("GPUS", cards);
     return { ok: true, hasGPU: true, cards: cards };
 }
+
+/**
+ * Gets current and total memory capacity for all NVIDIA GPUs in GB
+ * @returns {Object} Object containing array of GPU information and total memory details
+ */
+function getGPUMemoryInfo(): { hasGPU: boolean, info: GPUInfo, success: boolean } {
+    const { hasGPU, cards, ok } = getGPUCardsInfo();
+    //console.log("CR", hasGPU, ok, cards)
+    if (!ok) {
+        return { hasGPU: hasGPU, info: {} as GPUInfo, success: false };
+    }
+    if (!hasGPU) {
+        return { hasGPU: false, info: {} as GPUInfo, success: ok };
+    }
+    let totalMemoryBytes = 0;
+    let usedMemoryBytes = 0;
+    cards.forEach(c => {
+        totalMemoryBytes += c.memory.totalMemoryBytes;
+        usedMemoryBytes += c.memory.usedMemoryBytes;
+    });
+    //console.log(cards.length, totalMemoryBytes, usedMemoryBytes)
+    try {
+        if (totalMemoryBytes == 0) {
+            return { hasGPU: hasGPU, info: {} as GPUInfo, success: false };
+        }
+        const totalUsagePercentage = calculateUsagePercentage(usedMemoryBytes, totalMemoryBytes);
+        const info: GPUInfo = {
+            totalMemory: {
+                totalMemoryBytes: totalMemoryBytes,
+                usedMemoryBytes: usedMemoryBytes,
+                usagePercentage: totalUsagePercentage
+            },
+            cards: cards,
+        };
+        return { hasGPU: true, info: info, success: true };
+    } catch (error) {
+        console.error("Error calculating total GPU memory usage percentage:", error);
+        throw error;
+    }
+}
+
 
 async function getTotalGPUMem(): Promise<number> {
     const { hasGPU, cards } = await getGPUCardsInfo();
@@ -93,44 +142,6 @@ function getGPUOccupationPercent(totalGPUMem: number, memOccupation: number): nu
         throw new Error(`Error: Formatting NaN in GPU occupation percent calculation. Total GPU Mem: ${totalGPUMem}, Mem Occupation: ${memOccupation}`);
     }
     return p;
-}
-
-/**
- * Gets current and total memory capacity for all NVIDIA GPUs in GB
- * @returns {Object} Object containing array of GPU information and total memory details
- */
-function getGPUMemoryInfo(): { hasGPU: boolean, info: GPUInfo, success: boolean } {
-    const { hasGPU, cards, ok } = getGPUCardsInfo();
-    if (!ok) {
-        return { hasGPU: hasGPU, info: {} as GPUInfo, success: false };
-    }
-    if (!hasGPU) {
-        return { hasGPU: false, info: {} as GPUInfo, success: ok };
-    }
-    let totalMemoryBytes = 0;
-    let usedMemoryBytes = 0;
-    cards.forEach(c => {
-        totalMemoryBytes += c.memory.totalMemoryBytes;
-        usedMemoryBytes += c.memory.usedMemoryBytes;
-    });
-    try {
-        if (totalMemoryBytes == 0) {
-            return { hasGPU: hasGPU, info: {} as GPUInfo, success: false };
-        }
-        const totalUsagePercentage = calculateUsagePercentage(usedMemoryBytes, totalMemoryBytes);
-        const info: GPUInfo = {
-            totalMemory: {
-                totalMemoryBytes: totalMemoryBytes,
-                usedMemoryBytes: usedMemoryBytes,
-                usagePercentage: totalUsagePercentage
-            },
-            cards: cards,
-        };
-        return { hasGPU: true, info: info, success: true };
-    } catch (error) {
-        console.error("Error calculating total GPU memory usage percentage:", error);
-        throw error;
-    }
 }
 
 export {

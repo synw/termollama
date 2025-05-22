@@ -13,6 +13,7 @@ const modelBarOptions: Options = {
     hideCursor: true,
     barGlue: '\u001b[38;5;237m',
     barsize: 42,
+    gracefulExit: true,
 };
 
 function formatModelData(modelData: ExtendedModelData): string {

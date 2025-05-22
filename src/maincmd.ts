@@ -1,18 +1,18 @@
 import { processAction } from "./actionbar.js";
-import { getGPUMemoryInfo, gpuDetailsStats, ramStats } from "./lib/bars/gpus.js";
+import { gpuDetailsStats, ramStats } from "./lib/bars/gpus.js";
 import { ps } from "./lib/ps.js";
+import { memInfo } from "./state.js";
 
 async function mainCmd(options: Record<string, any>) {
-    const { hasGPU, info } = getGPUMemoryInfo();
-    const { models, hasOffload, isRunning } = await ps(false);
+    const { models, hasOffload, isRunning } = await ps();
     const w = options.watch ?? false;
-    if (hasGPU) {
-        if (info.cards.length > 1) {
-            gpuDetailsStats(info, models, w, options?.maxModelBars);
+    if (memInfo.hasGpu) {
+        if (memInfo.gpu.cards.length > 0) {
+            gpuDetailsStats(memInfo.gpu, models, w, options?.maxModelBars);
         }
     }
-    if ((!hasGPU || hasOffload!) && !w) {
-        ramStats(hasGPU);
+    if ((!memInfo.hasGpu || hasOffload!) && !w) {
+        ramStats(memInfo.hasGpu);
     }
     if (isRunning && !w) {
         await processAction(options);

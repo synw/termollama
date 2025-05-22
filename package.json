@@ -5,6 +5,7 @@
   "version": "0.0.14",
   "scripts": {
     "build": "tsc",
+    "mcp": "npx -y @modelcontextprotocol/server-filesystem ~/dev/js/termollama",
     "test": "jest --config jest.config.js"
   },
   "dependencies": {
