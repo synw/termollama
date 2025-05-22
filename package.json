@@ -2,7 +2,7 @@
   "name": "termollama",
   "description": "A linux command line utility for Ollama",
   "repository": "https://github.com/synw/termollama",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "scripts": {
     "build": "tsc",
     "mcp": "npx -y @modelcontextprotocol/server-filesystem ~/dev/js/termollama",

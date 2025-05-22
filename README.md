@@ -12,12 +12,20 @@ A Linux command line utility for [Ollama](https://github.com/ollama/ollama), a u
 
 ## Install
 
-Requirements: the `nvidia-smi` command should be available on the system.
+The `nvidia-smi` command should be available on the system in order to display gpu info.
+
+Install:
 
 ```bash
 npm i -g termollama
 # to update:
 npm i -g termollama@latest
+```
+
+Or just run it with npx:
+
+```bash
+npx termollama
 ```
 
 The `olm` command is now available.
