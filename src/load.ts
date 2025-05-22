@@ -1,13 +1,13 @@
 import { checkbox } from '@inquirer/prompts';
+import { GenerateRequest } from 'ollama/dist/index.js';
 import ora from 'ora';
 import { parseModelCtx, selectModelCtx } from './ctx.js';
+import { selectKeepAlive } from './keepalive.js';
 import { getGPUMemoryInfo, gpuTotalStats } from "./lib/bars/gpus.js";
 import { modelsMemChart } from './lib/models.js';
-import { ollama } from './state.js';
 import { ollamaPs } from './lib/ps.js';
 import { runtimeParamError } from './lib/user_msgs.js';
-import { selectKeepAlive } from './keepalive.js';
-import { GenerateRequest, Options } from 'ollama/dist/index.js';
+import { ollama } from './state.js';
 
 async function load(filters: Array<string>, options: Record<string, any>) {
     const { isRunning, models } = await ollamaPs();

@@ -1,18 +1,22 @@
 #!/usr/bin/env node
-import { Command } from "@commander-js/extra-typings";
+import { Command } from "commander";
 import { initCommands } from "./cmds.js";
-import { initEnvVars, initOllamaInstanceState } from "./state.js";
-import { StateOptions } from "./interfaces.js";
+import { initEnvVars, initMemoryState, initOllamaInstanceState } from "./state.js";
 
 (async () => {
     const program = new Command();
     program.hook('preAction', (thisCommand, actionCommand) => {
-        const cmdName = thisCommand.name();
+        const cmdName = actionCommand.name();
+        const options = actionCommand.opts();
         if (!["serve", "gguf"].includes(cmdName)) {
-            const opts = actionCommand.opts() as StateOptions;
-            initOllamaInstanceState(opts?.useInstance, opts?.useHttps);
-        } else if (cmdName == "info") {
-            initEnvVars()
+            initOllamaInstanceState(options?.useInstance, options?.useHttps);
+        }
+        if (cmdName == "info") {
+            initEnvVars();
+        }
+        if (["info", "load", "models"].includes(cmdName)) {
+            let gpusToUse: Array<number> | undefined = options?.gpu;
+            initMemoryState(options?.cpu, gpusToUse)
         }
     });
     initCommands(program);

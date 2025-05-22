@@ -1,11 +1,9 @@
-import { Command } from "@commander-js/extra-typings";
-import { setCtx } from "./ctx.js";
+import { Command } from "commander";
 import { confEnv } from "./env.js";
 import { gguf } from "./gguf/gguf.js";
 import { ServeOptions } from "./interfaces.js";
-import { keepAlive } from "./keepalive.js";
-import { ollamaPsOrQuit } from "./lib/ps.js";
 import { modelsMemChart } from "./lib/models.js";
+import { ollamaPsOrQuit } from "./lib/ps.js";
 import { load } from "./load.js";
 import { mainCmd } from "./maincmd.js";
 import { models } from "./models.js";

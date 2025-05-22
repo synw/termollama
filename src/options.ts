@@ -1,8 +1,19 @@
-import { InvalidArgumentError, Option } from "@commander-js/extra-typings";
+import { InvalidArgumentError, Option } from "commander";
 
 const stateOptions: Array<Option> = [
     new Option("-u, --use-instance <hostdomain>", "use a specific Ollama instance as source: 'olm -u 162.168.1.8:11434'"),
     new Option("-s, --use-https", "use an https protocol to reach the Ollama instance. Default: false")
+];
+
+const gpuOptions: Array<Option> = [
+    new Option("--cpu", "use cpu only").conflicts("gpu"),
+    new Option("-g, --gpu <number(s...>", "use given gpus: ex: '0 1'").argParser((v: any, p: any) => {
+        const iv = parseInt(v);
+        if (isNaN(iv)) {
+            throw new InvalidArgumentError(`--gpu option: ${v} is not a number`);
+        }
+        return p ? [...p, iv] : [iv]
+    }),
 ];
 
 const serveOptions: Array<Option> = [
@@ -18,14 +29,7 @@ const serveOptions: Array<Option> = [
     new Option("--host <hostname>", "hostname to serve the server on. Default: 'localhost'"),
     new Option("-p, --port <number>", "port to serve the server on. Default: '11434'"),
     new Option("-r, --registry <path>", "use a model registry directory"),
-    new Option("--cpu", "use cpu only").conflicts("gpu"),
-    new Option("-g, --gpu <number(s...>", "use given gpus: ex: '0 1'").argParser((v: any, p: any) => {
-        const iv = parseInt(v);
-        if (isNaN(iv)) {
-            throw new InvalidArgumentError(`--gpu option: ${v} is not a number`);
-        }
-        return p ? [...p, iv] : [iv]
-    }),
+    ...gpuOptions,
 ];
 
 const ggufOptions: Array<Option> = [
@@ -57,6 +61,7 @@ const baseOptions: Array<Option> = [
         "\nUseful when the server is launched with a custom max models setting and your OLLAMA_MAX_LOADED_MODELS env variable is unset. " +
         "Example: run the server with 'olm s -m 4' and use 'olm -wm 4'. Or just 'olm -wm 1' if you want to see only one model bar.",
     ),
+    ...gpuOptions,
 ]
 
 const loadOptions: Array<Option> = [

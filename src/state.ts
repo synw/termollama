@@ -1,4 +1,6 @@
 import { Ollama } from 'ollama';
+import { GPUInfo, MemInfo } from './interfaces.js';
+import { getGPUMemoryInfo } from './lib/gpu.js';
 
 let ollama: Ollama;
 const displayThresholds = {
@@ -8,6 +10,27 @@ const displayThresholds = {
         high: 70,
     },
     power: 20,
+}
+const memInfo: MemInfo = {
+    hasGpu: false,
+    gpu: {} as GPUInfo,
+    gpusToUse: undefined,
+}
+
+function initMemoryState(cpuOnly?: boolean, gpusToUse?: Array<number>) {
+    if (cpuOnly) {
+        memInfo.hasGpu = false;
+        return
+    }
+    memInfo.gpusToUse = gpusToUse;
+    //console.log("GPTU", memInfo.gpusToUse)
+    const res = getGPUMemoryInfo();
+    if (!res.success) {
+        throw new Error(`can not get gpu info: ${res}`)
+    }
+    memInfo.hasGpu = res.hasGPU;
+    memInfo.gpu = res.info;
+    //console.log("MEM STATE", memInfo);
 }
 
 function initOllamaInstanceState(addr: string = "localhost:11434", https = false) {
@@ -38,6 +61,8 @@ function initEnvVars() {
 export {
     initOllamaInstanceState,
     initEnvVars,
+    initMemoryState,
+    memInfo,
     ollama,
     displayThresholds,
 }

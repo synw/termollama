@@ -4,7 +4,7 @@ import { getGPUOccupationPercent, getTotalGPUMem } from "./gpu.js";
 import { formatFileSize, getTimeHumanizedUntil } from './utils.js';
 // @ts-ignore
 import TCharts from "tcharts.js";
-import { ollama } from '../state.js';
+import { memInfo, ollama } from '../state.js';
 
 
 async function ps(display = false): Promise<{
@@ -21,8 +21,7 @@ async function ps(display = false): Promise<{
     if (data.length == 0) {
         return { isRunning: true, hasOffload: false, hasLoadedModels: false, models: [] }
     }
-    const totalGpuMem = await getTotalGPUMem();
-    const hasGpu = totalGpuMem > 0;
+    //const totalGpuMem = await getTotalGPUMem();
     const choices: Array<{ name: string, value: string }> = [];
     const models = new Array<ExtendedModelData>();
     let hasOffload = false;
@@ -62,13 +61,13 @@ async function ps(display = false): Promise<{
     const table = new Table(0.2);
     const dt = new Array<string>("Model", "Size");
     dt.push("Unload in");
-    if (hasGpu) {
+    if (memInfo.hasGpu) {
         dt.push("Gpu usage");
     }
-    if (hasOffload || !hasGpu) {
+    if (hasOffload || !memInfo.hasGpu) {
         dt.push("Ram")
     }
-    if (hasGpu) {
+    if (memInfo.hasGpu) {
         models.sort((a, b) => b.raw_size_vram - a.raw_size_vram);
     } else {
         models.sort((a, b) => b.raw_size_ram - a.raw_size_ram);
@@ -78,13 +77,13 @@ async function ps(display = false): Promise<{
         let name = m.name;
         let gpuOccupation = "";
         name = m.name;
-        gpuOccupation = `${getGPUOccupationPercent(totalGpuMem, m.raw_size_vram)}%`;
+        gpuOccupation = `${getGPUOccupationPercent(memInfo.gpu.totalMemory.totalMemoryBytes, m.raw_size_vram)}%`;
         const size = m.isLoaded ? m.size_vram : m.size;
         const mdata = [name, size, m.expire];
-        if (hasOffload || !hasGpu) {
+        if (hasOffload || !memInfo.hasGpu) {
             mdata.push(m.ram_percentage)
         }
-        if (hasGpu) {
+        if (memInfo.hasGpu) {
             mdata.push(gpuOccupation);
         }
         tdata.push(mdata);
