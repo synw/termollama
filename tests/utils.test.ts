@@ -1,4 +1,14 @@
 import { formatFileSize, getTimeHumanizedUntil } from '../src/lib/utils';
+
+// Create a mock for user_msgs.js with CommonJS syntax
+const userMsgs = jest.fn(() => ({
+    onUserInput: () => { },
+    onChatResponse: () => { }
+}));
+
+// Mock the module
+jest.mock('../src/lib/user_msgs', () => userMsgs);
+
 import { findModel } from '../src/gguf/utils';
 
 describe('getTimeHumanizedUntil', () => {

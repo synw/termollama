@@ -18,25 +18,31 @@
     "outDir": "dist",
     "types": [
       "node",
-      "jest",
+      "jest"
     ],
     "lib": [
       "ES2022",
-      "dom",
+      "dom"
     ],
     "baseUrl": ".",
     "paths": {
       "*": [
         "node_modules/*"
       ]
-    }
+    },
+    "typeRoots": [
+      "./src/lib",
+      "./node_modules/@types"
+    ]
   },
   "include": [
     "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "test"
+    "dist"
+  ],
+  "filesGlob": [
+    "tests/**/*.ts"
   ]
 }
