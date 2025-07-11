@@ -109,10 +109,6 @@ interface GPUInfo {
     totalMemory: TotalMemoryInfo;
     cards: Array<GPUCardInfo>;
 }
-interface GPUInfo {
-    totalMemory: TotalMemoryInfo;
-    cards: Array<GPUCardInfo>;
-}
 
 interface CardBarInfo {
     index: number;

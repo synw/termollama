@@ -26,7 +26,7 @@ function initMemoryState(cpuOnly?: boolean, gpusToUse?: Array<number>) {
     //console.log("GPTU", memInfo.gpusToUse)
     const res = getGPUMemoryInfo();
     if (!res.success) {
-        throw new Error(`can not get gpu info: ${res}`)
+        throw new Error(`can not get gpu info: ${JSON.stringify(res, null, 2)}`)
     }
     memInfo.hasGpu = res.hasGPU;
     memInfo.gpu = res.info;

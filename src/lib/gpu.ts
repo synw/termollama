@@ -148,4 +148,6 @@ export {
     getGPUMemoryInfo,
     getGPUOccupationPercent,
     getTotalGPUMem,
+    calculateUsagePercentage,
+    getGPUCardsInfo,
 }
